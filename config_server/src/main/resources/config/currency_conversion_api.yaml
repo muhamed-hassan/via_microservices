@@ -1,4 +1,8 @@
-#spring.cloud.config.uri=http://localhost:8888
+external:
+  api:
+    countries: https://restcountries.eu/rest/v2
+    rates: https://api.exchangeratesapi.io/latest
+
 feign:
   hystrix:
     enabled: true

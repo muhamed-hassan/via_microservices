@@ -1,4 +1,10 @@
 spring:
   application:
     name: currency_conversion_api
+  cloud:
+    config:
+      username: internal-app
+      password: 1234
+      uri:
+        - http://localhost:8888
 

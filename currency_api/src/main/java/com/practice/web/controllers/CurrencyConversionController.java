@@ -32,7 +32,8 @@ public class CurrencyConversionController {
 
     @ApiOperation(value = "Get countries with their currency codes")
     @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval countries with their currency codes", response = Map.class),
+        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval countries with their currency codes",
+                        response = Map.class),
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = Map.class)
     })
     @GetMapping("countries")
@@ -42,7 +43,8 @@ public class CurrencyConversionController {
 
     @ApiOperation(value = "Get latest rates by base")
     @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the latest rates by base", response = String.class),
+        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the latest rates by base",
+                        response = String.class),
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = String.class)
     })
     @GetMapping("countries/{currencyCode}")
@@ -52,7 +54,8 @@ public class CurrencyConversionController {
 
     @ApiOperation(value = "Get highest and lowest rates by base")
     @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the highest and lowest rates by base", response = Map.class),
+        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the highest and lowest rates by base",
+                        response = Map.class),
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = Map.class)
     })
     @GetMapping("rates/statistics")
@@ -62,7 +65,8 @@ public class CurrencyConversionController {
 
     @ApiOperation(value = "Get latest rates by base")
     @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the latest rates by base", response = Map.class),
+        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the latest rates by base",
+                        response = Map.class),
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = Map.class)
     })
     @GetMapping("rates")

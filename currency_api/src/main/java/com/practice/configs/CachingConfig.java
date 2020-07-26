@@ -17,7 +17,7 @@ public class CachingConfig {
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
         cacheManager.setCaches(List.of(new ConcurrentMapCache("allCountries"),
-            new ConcurrentMapCache("countriesByCurrencyCode")));
+                                        new ConcurrentMapCache("countriesByCurrencyCode")));
         return cacheManager;
     }
 

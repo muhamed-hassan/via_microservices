@@ -20,23 +20,23 @@ public class SwaggerConfig {
 	@Bean
 	public Docket api() {
 		return new Docket(DocumentationType.SWAGGER_2)
-				.useDefaultResponseMessages(false)
-				.select()
-				.apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
-				.paths(PathSelectors.any())
-				.build()
-				.apiInfo(apiEndPointsInfo());
+					.useDefaultResponseMessages(false)
+					.select()
+					.apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
+					.paths(PathSelectors.any())
+					.build()
+					.apiInfo(apiEndPointsInfo());
 	}
 
 	private ApiInfo apiEndPointsInfo() {
 		return new ApiInfoBuilder()
-				.title("Employee Management API")
-				.description("Handling CRUD operations with Employee Management API")
-				.contact(new Contact("Mohamed Shalaby", "www.example-via.net", "example-via@via.com"))
-				.license("Sample License")
-				.licenseUrl("http://www.example-license.org/LICENSE.html")
-				.version("1.0")
-				.build();
+					.title("Currency Conversion API")
+					.description("Handling various query operation related to currencies")
+					.contact(new Contact("Mohamed Hassan", "www.example-via.net", "example-via@via.com"))
+					.license("Sample License")
+					.licenseUrl("http://www.example-license.org/LICENSE.html")
+					.version("1.0")
+					.build();
 	}
 
 }

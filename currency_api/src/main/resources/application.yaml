@@ -11,13 +11,7 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${random.int}
 
-spring:
-  cloud:
-    config:
-      username: internal-app
-      password: 1234
-      uri:
-        - http://localhost:8888
+
 
 
 
