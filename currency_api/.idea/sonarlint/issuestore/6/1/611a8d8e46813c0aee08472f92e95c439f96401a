@@ -1,18 +1,0 @@
-
-]	java:S125Y"<This block of commented-out lines of code should be removed.(Ø»©ıÿÿÿÿ8×û¯æ¸.
-^	java:S125„"<This block of commented-out lines of code should be removed.(Ø»©ıÿÿÿÿ8×û¯æ¸.
-]	java:S125q"<This block of commented-out lines of code should be removed.(¸»ØŠûÿÿÿÿ8×û¯æ¸.
-[	java:S106†"9Replace this use of System.out or System.err by a logger.(ªÓ¼áşÿÿÿÿ8×û¯æ¸.
-Z	java:S106@"9Replace this use of System.out or System.err by a logger.(ªÓ¼áşÿÿÿÿ8Ğ¯úä¸.
-I
-java:S1128"-Remove this unused import 'org.slf4j.Logger'.(íØ®68É€ä¸.
-]	java:S125"<This block of commented-out lines of code should be removed.(™¥•øùÿÿÿÿ8üüóå¸.
-]	java:S125>"<This block of commented-out lines of code should be removed.(Ø»©ıÿÿÿÿ8Æöƒä¸.
-]	java:S125`"<This block of commented-out lines of code should be removed.(Ì°Ÿìúÿÿÿÿ8×û¯æ¸.
-Y	java:S125‹"<This block of commented-out lines of code should be removed.(ùåü8×û¯æ¸.
-Q
-java:S1128"4Remove this unused import 'org.slf4j.LoggerFactory'.(–ÿÚŞ8É€ä¸.
-X	java:S125E"<This block of commented-out lines of code should be removed.(¦×¡æ8éÔä¸.
-J
-java:S1612",Replace this lambda with a method reference.(ùÑ¬8•Ş¸æ¸.
-Z	java:S106["9Replace this use of System.out or System.err by a logger.(ªÓ¼áşÿÿÿÿ8×û¯æ¸.
