@@ -1,0 +1,20 @@
+server:
+  port: 9000
+  error:
+    whitelabel:
+      enabled: false
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    instance-id: ${spring.application.name}:${random.int}
+
+zuul:
+  ignored-services:
+    - '*'
+  routes:
+    currency_conversion_api:
+      path: /currency-conversion-api/**
+      serviceId: currency_conversion_api

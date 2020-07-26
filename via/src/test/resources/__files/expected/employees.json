@@ -1,0 +1,42 @@
+[
+    {        
+        "id": 1,
+        "name": "Charlotte",
+        "username": "Charlotte_Jack",
+        "email": "Charlotte_Jack@test.com",        
+        "phone_number": "061123456",
+        "age": 25
+    },
+    {        
+        "id": 2,
+        "name": "Thomas",
+        "username": "Thomas_Joseph",
+        "email": "Thomas_Joseph@test.com",        
+        "phone_number": "062123456",
+        "age": 26
+    },
+    {        
+        "id": 3,
+        "name": "Olivia",
+        "username": "Olivia_Matthew",
+        "email": "Olivia_Matthew@test.com",        
+        "phone_number": "063123456",
+        "age": 27
+    },
+    {        
+        "id": 4,
+        "name": "Luke",
+        "username": "Luke_Samuel",
+        "email": "Luke_Samuel@test.com",        
+        "phone_number": "064123456",
+        "age": 28
+    },
+    {        
+        "id": 5,
+        "name": "Hannah",
+        "username": "Hannah_Joshua",
+        "email": "Hannah_Joshua@test.com",        
+        "phone_number": "065123456",
+        "age": 29
+    }
+]

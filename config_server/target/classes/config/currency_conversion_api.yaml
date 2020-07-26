@@ -1,0 +1,10 @@
+#spring.cloud.config.uri=http://localhost:8888
+feign:
+  hystrix:
+    enabled: true
+
+logging:
+  level:
+    root: info
+  pattern:
+    console: '%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n'
