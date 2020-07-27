@@ -10,13 +10,28 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.practice.exceptions.ServiceNotAvailable;
 
 @RestControllerAdvice
 public class GlobalErrorHandler {
 
     private static final String ERROR_KEY = "error";
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleServiceNotAvailable(ServiceNotAvailable exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                                .body(Map.of(ERROR_KEY, exception.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of(ERROR_KEY, exception.getMessage()));
+    }
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException exception) {

@@ -34,7 +34,7 @@ public class CurrencyConversionController {
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval countries with their currency codes",
                         response = Map.class),
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = Map.class)
+        @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External endpoint not available")
     })
     @GetMapping("countries")
     public Map<String, String> getCountriesWithTheirCurrencyCodes() {
@@ -45,7 +45,7 @@ public class CurrencyConversionController {
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the latest rates by base",
                         response = String.class),
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = String.class)
+        @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External endpoint not available")
     })
     @GetMapping("countries/{currencyCode}")
     public List<String> getCountriesByCurrencyCode(@PathVariable String currencyCode) {
@@ -56,7 +56,7 @@ public class CurrencyConversionController {
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the highest and lowest rates by base",
                         response = Map.class),
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = Map.class)
+        @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External endpoint not available")
     })
     @GetMapping("rates/statistics")
     public Map<String, Double> getHighestAndLowestRatesByBase(@RequestParam @CurrencyCodeRule String currencyCode) {
@@ -67,7 +67,7 @@ public class CurrencyConversionController {
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded in retrieval the latest rates by base",
                         response = Map.class),
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Empty result in case of fallback", response = Map.class)
+        @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External endpoint not available")
     })
     @GetMapping("rates")
     public Map<String, Double> getLatestRatesByBase(@RequestParam @CurrencyCodeRule String currencyCode) {

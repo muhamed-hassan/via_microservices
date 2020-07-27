@@ -1,0 +1,14 @@
+external:
+  api:
+    countries: https://restcountries.eu/rest/v2
+    rates: https://api.exchangeratesapi.io/latest
+
+feign:
+  hystrix:
+    enabled: true
+
+logging:
+  level:
+    root: info
+  pattern:
+    console: '%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n'
