@@ -17,16 +17,24 @@ import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE;
 import static com.practice.it.helpers.KeysOfHttpHeaders.ACCEPT_HEADER;
-import static com.practice.it.helpers.Mappings.*;
+import static com.practice.utils.Constants.HUF;
+import static com.practice.utils.Mappings.RESPONSES_OF_EXTERNAL_API_DIR;
+import static com.practice.utils.Mappings.EXPECTED_RESPONSES_OF_INTERNAL_API_DIR;
+import static com.practice.utils.Mappings.COUNTRIES_JSON;
+import static com.practice.utils.Mappings.ERRORS_DIR;
+import static com.practice.utils.Mappings.SERVICE_NOT_AVAILABLE_JSON;
+import static com.practice.utils.Mappings.INVALID_CURRENCY_CODE_JSON;
+import static com.practice.utils.Mappings.MISSING_CURRENCY_CODE_JSON;
+import static com.practice.utils.Mappings.COUNTRY_OF_HUF_JSON;
+import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON;
+import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON;
+import static com.practice.utils.ResponseHandler.readJsonFrom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,7 +60,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -64,10 +71,6 @@ import com.practice.it.models.ResponseFromMockServer;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class CurrencyConversionControllerIT {
-
-    private static final String BASE = "HUF";
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private TestRestTemplate testRestTemplate;
 
@@ -108,26 +111,26 @@ public class CurrencyConversionControllerIT {
         ResponseFromMockServer allCountriesExternal = new ResponseFromMockServer(allCountriesResponseExternal, OK.value(), COUNTRIES_API);
         String allCountriesInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRIES_JSON);
 
-        String countriesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRY_OF_HUF);
+        String countriesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRY_OF_HUF_JSON);
         ResponseFromMockServer countriesOfHufExternal = new ResponseFromMockServer(countriesOfHufResponseExternal, OK.value(), COUNTRIES_API);
-        String countriesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRY_OF_HUF);
+        String countriesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRY_OF_HUF_JSON);
 
-        String lowestAndHighestRatesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF);
+        String lowestAndHighestRatesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
         ResponseFromMockServer lowestAndHighestRatesOfHufExternal = new ResponseFromMockServer(lowestAndHighestRatesOfHufResponseExternal, OK.value(), RATES_API);
-        String lowestAndHighestRatesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LOWEST_AND_HIGHEST_RATES_OF_HUF);
+        String lowestAndHighestRatesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON);
 
-        String latestRatesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF);
+        String latestRatesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
         ResponseFromMockServer latestRatesOfHufExternal = new ResponseFromMockServer(latestRatesOfHufResponseExternal, OK.value(), RATES_API);
-        String latestRatesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LATEST_RATES_OF_HUF);
+        String latestRatesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
 
         return Stream.of(
             Arguments.of(ALL_COUNTRIES_EXTERNAL, allCountriesExternal, ALL_COUNTRIES_INTERNAL, allCountriesInternal),
-            Arguments.of(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, BASE), countriesOfHufExternal,
-                            MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, BASE), countriesOfHufInternal),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, BASE), lowestAndHighestRatesOfHufExternal,
-                            MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, BASE), lowestAndHighestRatesOfHufInternal),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, BASE), latestRatesOfHufExternal,
-                            MessageFormat.format(LATEST_RATES_INTERNAL, BASE), latestRatesOfHufInternal)
+            Arguments.of(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), countriesOfHufExternal,
+                            MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF), countriesOfHufInternal),
+            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), lowestAndHighestRatesOfHufExternal,
+                            MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF), lowestAndHighestRatesOfHufInternal),
+            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), latestRatesOfHufExternal,
+                            MessageFormat.format(LATEST_RATES_INTERNAL, HUF), latestRatesOfHufInternal)
         );
     }
 
@@ -157,12 +160,12 @@ public class CurrencyConversionControllerIT {
 
         return Stream.of(
             Arguments.of(ALL_COUNTRIES_EXTERNAL, allCountries, ALL_COUNTRIES_INTERNAL),
-            Arguments.of(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, BASE), countriesOfHuf,
-                            MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, BASE)),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, BASE), lowestAndHighestRatesOfHUF,
-                            MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, BASE)),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, BASE), latestRatesOfHuf,
-                            MessageFormat.format(LATEST_RATES_INTERNAL, BASE))
+            Arguments.of(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), countriesOfHuf,
+                            MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF)),
+            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), lowestAndHighestRatesOfHUF,
+                            MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF)),
+            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), latestRatesOfHuf,
+                            MessageFormat.format(LATEST_RATES_INTERNAL, HUF))
         );
     }
 
@@ -185,18 +188,9 @@ public class CurrencyConversionControllerIT {
             Arguments.of(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
             Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
             Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
-            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, BASE), missingCurrencyCode),
-            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, BASE), missingCurrencyCode)
+            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, HUF), missingCurrencyCode),
+            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, HUF), missingCurrencyCode)
         );
-    }
-
-    private static String readJsonFrom(String responseLocation)
-            throws Exception {
-        String content = Files.readAllLines(Paths.get(ClassLoader.getSystemResource(BASE_MAPPINGS_DIR + responseLocation).toURI()),
-                                                Charset.forName(StandardCharsets.UTF_8.name()))
-                                .stream()
-                                .collect(Collectors.joining());
-        return OBJECT_MAPPER.readTree(content).toString();
     }
 
     private void prepareStubServer(String requestPath, ResponseFromMockServer response) {

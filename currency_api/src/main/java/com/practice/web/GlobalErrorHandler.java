@@ -12,7 +12,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.practice.exceptions.ServiceNotAvailable;
+import com.practice.exceptions.ServiceNotAvailableException;
 
 @RestControllerAdvice
 public class GlobalErrorHandler {
@@ -20,7 +20,7 @@ public class GlobalErrorHandler {
     private static final String ERROR_KEY = "error";
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleServiceNotAvailable(ServiceNotAvailable exception) {
+    public ResponseEntity<Map<String, String>> handleServiceNotAvailable(ServiceNotAvailableException exception) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                                 .body(Map.of(ERROR_KEY, exception.getMessage()));
     }

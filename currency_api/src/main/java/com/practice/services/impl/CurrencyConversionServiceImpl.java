@@ -14,14 +14,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.practice.exceptions.ServiceNotAvailable;
+import com.practice.exceptions.ServiceNotAvailableException;
 import com.practice.integration.CountryProvider;
 import com.practice.integration.RateProvider;
 import com.practice.services.CurrencyConversionService;
-import com.practice.transfomers.CurrncyConversionTransformer;
+import com.practice.transfomers.ResponseTransformer;
 
 import feign.FeignException;
 
@@ -38,13 +37,14 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     private RateProvider rateProvider;
 
     @Autowired
-    private CurrncyConversionTransformer currncyConversionTransformer;
+    private ResponseTransformer currncyConversionTransformer;
 
     @Cacheable(cacheNames = "allCountries")
     @Override
     public Map<String, String> getCountriesWithTheirCurrencyCodes() {
         try {
-            String responseBody = countryProvider.getCountriesWithTheirCurrencyCodes().getBody();
+            ResponseEntity<String> response = countryProvider.getCountriesWithTheirCurrencyCodes();
+            String responseBody = response.getBody();
             JsonNode countriesJsonNode = objectMapper.readTree(responseBody);
             return currncyConversionTransformer.transform(countriesJsonNode.spliterator(),
                                                             countryNode -> countryNode.get("name").asText(),
@@ -53,8 +53,8 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
                                                                 currencyNode -> currencyNode.get("code").asText(),
                                                                 joining(",")));
         } catch (FeignException.ServiceUnavailable e) {
-            throw new ServiceNotAvailable();
-        } catch (JsonProcessingException e) {
+            throw new ServiceNotAvailableException();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -63,38 +63,43 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Override
     public List<String> getCountriesByCurrencyCode(String currencyCode) {
         try {
-            String responseBody = countryProvider.getCountriesByCurrencyCode(currencyCode).getBody();
+            ResponseEntity<String> response = countryProvider.getCountriesByCurrencyCode(currencyCode);
+            String responseBody = response.getBody();
             JsonNode countriesJsonNode = objectMapper.readTree(responseBody);
             return currncyConversionTransformer.transform(countriesJsonNode.spliterator(),
                                                             countryNode -> countryNode.get("name").asText(),
                                                             toList());
         } catch (FeignException.ServiceUnavailable e) {
-            throw new ServiceNotAvailable();
-        } catch (JsonProcessingException e) {
+            throw new ServiceNotAvailableException();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public Map<String, Double> getHighestAndLowestRatesByBase(String base) {
-        DoubleSummaryStatistics doubleSummaryStatistics = currncyConversionTransformer.getStatistics(
-                                                                    getLatestRatesByBase(base).entrySet().stream(),
-                                                                    Map.Entry::getValue);
-        return Map.of("highest", doubleSummaryStatistics.getMax(),
-                            "lowest", doubleSummaryStatistics.getMin());
+        DoubleSummaryStatistics statistics = getLatestRatesByBase(base)
+                                                    .entrySet()
+                                                    .stream()
+                                                    .map(Map.Entry::getValue)
+                                                    .mapToDouble(Double::doubleValue)
+                                                    .summaryStatistics();
+        return Map.of("highest", statistics.getMax(),
+                            "lowest", statistics.getMin());
     }
 
     @Override
     public Map<String, Double> getLatestRatesByBase(String base) {
         try {
-            String responseBody = rateProvider.getLatestRatesByBase(base).getBody();
+            ResponseEntity<String> response = rateProvider.getLatestRatesByBase(base);
+            String responseBody = response.getBody();
             JsonNode ratesNode = objectMapper.readTree(responseBody);
             return currncyConversionTransformer.transform(spliteratorUnknownSize(ratesNode.get("rates").fields(), ORDERED),
                                                             entry -> entry.getKey(),
                                                             entry -> entry.getValue().asDouble());
         } catch (FeignException.ServiceUnavailable e) {
-            throw new ServiceNotAvailable();
-        } catch (JsonProcessingException e) {
+            throw new ServiceNotAvailableException();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
