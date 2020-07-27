@@ -22,4 +22,8 @@ public final class Mappings {
 
     public static final String SERVICE_NOT_AVAILABLE_JSON = "service_not_available.json";
 
+    public static final String MISSING_CURRENCY_CODE_JSON = "missing_currencyCode_error.json";
+
+    public static final String INVALID_CURRENCY_CODE_JSON = "invalid_currencyCode_error.json";
+
 }

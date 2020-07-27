@@ -6,10 +6,8 @@ import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,17 +36,6 @@ public class GlobalErrorHandler {
         String message = exception.getConstraintViolations()
                                     .stream()
                                     .map(ConstraintViolation::getMessage)
-                                    .collect(Collectors.joining(", "));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of(ERROR_KEY, message));
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        String message = exception.getBindingResult()
-                                    .getAllErrors()
-                                    .stream()
-                                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
                                     .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(Map.of(ERROR_KEY, message));

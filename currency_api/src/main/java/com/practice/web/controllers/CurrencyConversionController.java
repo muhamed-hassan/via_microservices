@@ -22,7 +22,7 @@ import io.swagger.annotations.ApiResponses;
 
 @Api(value = "Currency Conversion API")
 @RestController
-@RequestMapping(value = "v1")
+@RequestMapping("v1")
 @Validated
 public class CurrencyConversionController {
 
@@ -48,7 +48,7 @@ public class CurrencyConversionController {
         @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External endpoint not available")
     })
     @GetMapping("countries/{currencyCode}")
-    public List<String> getCountriesByCurrencyCode(@PathVariable String currencyCode) {
+    public List<String> getCountriesByCurrencyCode(@PathVariable @CurrencyCodeRule String currencyCode) {
         return currencyConversionService.getCountriesByCurrencyCode(currencyCode);
     }
 

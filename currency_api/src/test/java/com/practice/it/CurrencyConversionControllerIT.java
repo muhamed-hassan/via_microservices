@@ -9,19 +9,17 @@ import static com.practice.it.helpers.ExternalEndpoints.COUNTRIES_BY_BASE_EXTERN
 import static com.practice.it.helpers.ExternalEndpoints.LATEST_RATES_EXTERNAL;
 import static com.practice.it.helpers.InternalEndpoints.ALL_COUNTRIES_INTERNAL;
 import static com.practice.it.helpers.InternalEndpoints.COUNTRIES_BY_BASE_INTERNAL;
+import static com.practice.it.helpers.InternalEndpoints.COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE;
 import static com.practice.it.helpers.InternalEndpoints.LATEST_RATES_INTERNAL;
+import static com.practice.it.helpers.InternalEndpoints.LATEST_RATES_INTERNAL_MALFORMED;
+import static com.practice.it.helpers.InternalEndpoints.LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL;
+import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED;
+import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE;
 import static com.practice.it.helpers.KeysOfHttpHeaders.ACCEPT_HEADER;
-import static com.practice.it.helpers.Mappings.BASE_MAPPINGS_DIR;
-import static com.practice.it.helpers.Mappings.COUNTRIES_JSON;
-import static com.practice.it.helpers.Mappings.COUNTRY_OF_HUF;
-import static com.practice.it.helpers.Mappings.ERRORS_DIR;
-import static com.practice.it.helpers.Mappings.EXPECTED_RESPONSES_OF_INTERNAL_API_DIR;
-import static com.practice.it.helpers.Mappings.LATEST_RATES_OF_HUF;
-import static com.practice.it.helpers.Mappings.LOWEST_AND_HIGHEST_RATES_OF_HUF;
-import static com.practice.it.helpers.Mappings.RESPONSES_OF_EXTERNAL_API_DIR;
-import static com.practice.it.helpers.Mappings.SERVICE_NOT_AVAILABLE_JSON;
+import static com.practice.it.helpers.Mappings.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
@@ -165,6 +163,30 @@ public class CurrencyConversionControllerIT {
                             MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, BASE)),
             Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, BASE), latestRatesOfHuf,
                             MessageFormat.format(LATEST_RATES_INTERNAL, BASE))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideArgumentsForTestGettersWhenInternalApiUriIsMalformed")
+    public void testGetters_WhenInternalApiUriIsMalformed_ThenReturn503WithErrorMsg(String requestToCurrencyConversionApiUri, String errorMsg)
+            throws Exception {
+
+        ResponseEntity<String> response = doRequest(requestToCurrencyConversionApiUri);
+
+        assertEquals(BAD_REQUEST.value(), response.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, response.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    private static Stream<Arguments> provideArgumentsForTestGettersWhenInternalApiUriIsMalformed()
+            throws Exception {
+        String invalidCurrencyCode = readJsonFrom(ERRORS_DIR + INVALID_CURRENCY_CODE_JSON);
+        String missingCurrencyCode = readJsonFrom(ERRORS_DIR + MISSING_CURRENCY_CODE_JSON);
+        return Stream.of(
+            Arguments.of(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
+            Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
+            Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
+            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, BASE), missingCurrencyCode),
+            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, BASE), missingCurrencyCode)
         );
     }
 
