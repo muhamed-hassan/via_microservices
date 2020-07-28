@@ -1,22 +1,19 @@
 package com.practice.services;
 
 import static com.practice.utils.Constants.HUF;
-import static com.practice.utils.ResponseHandler.RESPONSES_OF_EXTERNAL_API_DIR;
-import static com.practice.utils.ResponseHandler.EXPECTED_RESPONSES_OF_INTERNAL_API_DIR;
-import static com.practice.utils.ResponseHandler.COUNTRIES_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRIES_WITH_INVALID_COUNTRY_NAME_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRIES_WITH_INVALID_CURRENCIES_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRIES_WITH_INVALID_CODE_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_AND_CODE_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRIES_WITH_INVALID_CURRENCIES_AND_CODE_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRY_OF_HUF_JSON;
-import static com.practice.utils.ResponseHandler.COUNTRY_OF_HUF_WITH_INVALID_COUNTRY_NAME_JSON;
-import static com.practice.utils.ResponseHandler.LATEST_RATES_OF_HUF_JSON;
-import static com.practice.utils.ResponseHandler.LATEST_RATES_OF_HUF_WITH_INVALID_RATES_JSON;
-import static com.practice.utils.ResponseHandler.LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON;
-import static com.practice.utils.ResponseHandler.getObjectMapper;
-import static com.practice.utils.ResponseHandler.readJsonFrom;
+import static com.practice.utils.Mappings.COUNTRIES_JSON;
+import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_CODE_JSON;
+import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_AND_CODE_JSON;
+import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_JSON;
+import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_COUNTRY_NAME_JSON;
+import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_CURRENCIES_AND_CODE_JSON;
+import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_CURRENCIES_JSON;
+import static com.practice.utils.Mappings.COUNTRY_OF_HUF_JSON;
+import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON;
+import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON_WITH_INVALID_RATES;
+import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON;
+import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
+import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,11 +48,14 @@ import com.practice.integration.CountryProvider;
 import com.practice.integration.RateProvider;
 import com.practice.services.impl.CurrencyConversionServiceImpl;
 import com.practice.transfomers.ResponseTransformer;
+import com.practice.utils.Mappings;
 
 import feign.FeignException;
 
 @ExtendWith(MockitoExtension.class)
 public class CurrencyConversionServiceTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Mock
     private ObjectMapper mockedObjectMapper;
@@ -75,14 +75,13 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetCountriesWithTheirCurrencyCodes_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRIES_JSON);
+        String rawResponse = getMappingFromExternalApi(COUNTRIES_JSON);
         when(countryProvider.getCountriesWithTheirCurrencyCodes())
             .thenReturn(ResponseEntity.ok(rawResponse));
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        Map<String, String> processedResponse = getObjectMapper().readValue(
-            readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRIES_JSON), Map.class);
+        Map<String, String> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(COUNTRIES_JSON), Map.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
@@ -104,10 +103,10 @@ public class CurrencyConversionServiceTest {
     @MethodSource("provideArgsForTestGetCountriesWithTheirCurrencyCodesWhenExternalApiAvailableAndItsResponseIsInvalid")
     public void testGetCountriesWithTheirCurrencyCodes_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException(String responseFile)
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + responseFile);
+        String rawResponse = getMappingFromExternalApi(responseFile);
         when(countryProvider.getCountriesWithTheirCurrencyCodes())
             .thenReturn(ResponseEntity.ok(rawResponse));
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
         doThrow(NullPointerException.class)
@@ -131,14 +130,13 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetCountriesByCurrencyCode_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRY_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(COUNTRY_OF_HUF_JSON);
         when(countryProvider.getCountriesByCurrencyCode(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        List<String> processedResponse = getObjectMapper().readValue(
-            readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRY_OF_HUF_JSON), List.class);
+        List<String> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(COUNTRY_OF_HUF_JSON), List.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Collector.class));
 
@@ -159,10 +157,10 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetCountriesByCurrencyCode_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRY_OF_HUF_WITH_INVALID_COUNTRY_NAME_JSON);
+        String rawResponse = getMappingFromExternalApi(COUNTRIES_WITH_INVALID_COUNTRY_NAME_JSON);
         when(countryProvider.getCountriesByCurrencyCode(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
         doThrow(NullPointerException.class)
@@ -175,14 +173,13 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetHighestAndLowestRatesByBase_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
         doReturn(ResponseEntity.ok(rawResponse))
             .when(rateProvider).getLatestRatesByBase(anyString());
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        Map<String, Double> processedResponse = getObjectMapper().readValue(
-            readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON), Map.class);
+        Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON), Map.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
@@ -204,11 +201,10 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetHighestAndLowestRatesByBase_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_WITH_INVALID_RATES_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON_WITH_INVALID_RATES);
         doReturn(ResponseEntity.ok(rawResponse))
             .when(rateProvider).getLatestRatesByBase(anyString());
-
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
 
@@ -219,14 +215,13 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetLatestRatesByBase_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
         when(rateProvider.getLatestRatesByBase(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        Map<String, Double> processedResponse = getObjectMapper().readValue(
-            readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON), Map.class);
+        Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LATEST_RATES_OF_HUF_JSON), Map.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
@@ -247,10 +242,10 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetLatestRatesByBase_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException()
             throws Exception {
-        String rawResponse = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_WITH_INVALID_RATES_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON_WITH_INVALID_RATES);
         when(rateProvider.getLatestRatesByBase(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
-        JsonNode parsedResponse = getObjectMapper().readTree(rawResponse);
+        JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
 
