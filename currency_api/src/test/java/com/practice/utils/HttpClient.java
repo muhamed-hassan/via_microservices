@@ -16,9 +16,9 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 
 public final class HttpClient {
 
-    private HttpClient() {}
+    private static TestRestTemplate testRestTemplate;
 
-        private static TestRestTemplate testRestTemplate;
+    private HttpClient() {}
 
     static {
         testRestTemplate = new TestRestTemplate(new RestTemplateBuilder().rootUri("http://localhost:1111"));

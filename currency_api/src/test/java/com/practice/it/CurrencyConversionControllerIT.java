@@ -111,7 +111,7 @@ public class CurrencyConversionControllerIT {
     public void testGetCountriesByCurrencyCode_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
-        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), COUNTRIES_API);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), responseFromMockServer);
 
         ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF));
@@ -149,7 +149,7 @@ public class CurrencyConversionControllerIT {
     public void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
-        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), RATES_API);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
 
         ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF));
@@ -196,7 +196,7 @@ public class CurrencyConversionControllerIT {
     public void testGetLatestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
-        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), RATES_API);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
 
         ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, HUF));

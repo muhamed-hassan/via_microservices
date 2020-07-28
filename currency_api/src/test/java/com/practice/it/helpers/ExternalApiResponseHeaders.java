@@ -4,8 +4,6 @@ import java.util.Map;
 
 public final class ExternalApiResponseHeaders {
 
-    private ExternalApiResponseHeaders() {}
-
     public static final Map<String, String> COUNTRIES_API = Map.ofEntries(Map.entry("Date", "Mon, 20 Apr 2020 08:22:55 GMT"),
         Map.entry("Content-Type", "application/json;charset=utf-8"), Map.entry("Transfer-Encoding", "chunked"),
         Map.entry("Connection", "keep-alive"), Map.entry("Access-Control-Allow-Origin", "*"),
@@ -24,5 +22,7 @@ public final class ExternalApiResponseHeaders {
         Map.entry("Server", "cloudflare"), Map.entry("CF-RAY", "586f01391a3ad40f-BUD"), Map.entry("Content-Encoding", "br"));
 
     public static final Map<String, String> SERVICE_NOT_AVAILABLE_HEADERS = Map.of("Status", "503 Service Temporarily Unavailable");
+
+    private ExternalApiResponseHeaders() {}
 
 }

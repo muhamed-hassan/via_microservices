@@ -11,8 +11,6 @@ import java.util.stream.Stream;
 
 public final class MappingsCache {
 
-    private MappingsCache() {}
-
     private static Map<String, String> mappingsOfInternalApi;
 
     private static Map<String, String> mappingsOfExternalApi;
@@ -22,21 +20,23 @@ public final class MappingsCache {
         mappingsOfExternalApi = loadFiles("responses/external_api");
     }
 
+    private MappingsCache() {}
+
     private static Map<String, String> loadFiles(String directory) {
         try (Stream<Path> files = Files.walk(Paths.get(ClassLoader.getSystemResource(directory).toURI()))) {
             return files.filter(Files::isRegularFile)
                         .map(file -> {
-                                String fileContent;
-                                try {
-                                    fileContent = Files.readAllLines(Paths.get(file.toUri()),
-                                        Charset.forName(StandardCharsets.UTF_8.name()))
-                                        .stream()
-                                        .collect(Collectors.joining());
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                        return new MappingEntry(file.getFileName().toString(), fileContent);})
-                    .collect(Collectors.toMap(MappingEntry::getFileName, MappingEntry::getFileContent));
+                            String fileContent;
+                            try {
+                                fileContent = Files.readAllLines(Paths.get(file.toUri()),
+                                                                    Charset.forName(StandardCharsets.UTF_8.name()))
+                                                    .stream()
+                                                    .collect(Collectors.joining());
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            return new MappingEntry(file.getFileName().toString(), fileContent); })
+                        .collect(Collectors.toMap(MappingEntry::getFileName, MappingEntry::getFileContent));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

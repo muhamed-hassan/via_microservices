@@ -48,7 +48,6 @@ import com.practice.integration.CountryProvider;
 import com.practice.integration.RateProvider;
 import com.practice.services.impl.CurrencyConversionServiceImpl;
 import com.practice.transfomers.ResponseTransformer;
-import com.practice.utils.Mappings;
 
 import feign.FeignException;
 
