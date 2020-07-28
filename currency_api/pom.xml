@@ -25,6 +25,7 @@
     <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
     <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
     <checkstyle.version>8.30</checkstyle.version>
+    <maven-pmd-plugin.version>3.11.0</maven-pmd-plugin.version>
   </properties>
 
   <dependencies>
@@ -139,6 +140,26 @@
         <executions>
           <execution>
             <phase>process-sources</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>${maven-pmd-plugin.version}</version>
+        <configuration>
+          <rulesets>
+            <ruleset>${main.basedir}/pmd_rules.xml</ruleset>
+          </rulesets>
+          <printFailingErrors>true</printFailingErrors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
             <goals>
               <goal>check</goal>
             </goals>
