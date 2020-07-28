@@ -23,4 +23,6 @@ public final class ExternalApiResponseHeaders {
         Map.entry("Expect-CT", "max-age=604800, report-uri=\"https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct\""),
         Map.entry("Server", "cloudflare"), Map.entry("CF-RAY", "586f01391a3ad40f-BUD"), Map.entry("Content-Encoding", "br"));
 
+    public static final Map<String, String> SERVICE_NOT_AVAILABLE_HEADERS = Map.of("Status", "503 Service Temporarily Unavailable");
+
 }

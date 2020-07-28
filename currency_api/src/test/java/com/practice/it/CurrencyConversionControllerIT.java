@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.practice.it.helpers.ExternalApiResponseHeaders.COUNTRIES_API;
 import static com.practice.it.helpers.ExternalApiResponseHeaders.RATES_API;
+import static com.practice.it.helpers.ExternalApiResponseHeaders.SERVICE_NOT_AVAILABLE_HEADERS;
 import static com.practice.it.helpers.ExternalEndpoints.ALL_COUNTRIES_EXTERNAL;
 import static com.practice.it.helpers.ExternalEndpoints.COUNTRIES_BY_BASE_EXTERNAL;
 import static com.practice.it.helpers.ExternalEndpoints.LATEST_RATES_EXTERNAL;
@@ -16,32 +17,28 @@ import static com.practice.it.helpers.InternalEndpoints.LATEST_RATES_INTERNAL_WI
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE;
-import static com.practice.it.helpers.KeysOfHttpHeaders.ACCEPT_HEADER;
 import static com.practice.utils.Constants.HUF;
-import static com.practice.utils.Mappings.RESPONSES_OF_EXTERNAL_API_DIR;
-import static com.practice.utils.Mappings.EXPECTED_RESPONSES_OF_INTERNAL_API_DIR;
+import static com.practice.utils.HttpClient.doRequest;
 import static com.practice.utils.Mappings.COUNTRIES_JSON;
-import static com.practice.utils.Mappings.ERRORS_DIR;
-import static com.practice.utils.Mappings.SERVICE_NOT_AVAILABLE_JSON;
-import static com.practice.utils.Mappings.INVALID_CURRENCY_CODE_JSON;
-import static com.practice.utils.Mappings.MISSING_CURRENCY_CODE_JSON;
 import static com.practice.utils.Mappings.COUNTRY_OF_HUF_JSON;
+import static com.practice.utils.Mappings.INVALID_CURRENCY_CODE_JSON;
 import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON;
 import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON;
-import static com.practice.utils.ResponseHandler.readJsonFrom;
+import static com.practice.utils.Mappings.MISSING_CURRENCY_CODE_JSON;
+import static com.practice.utils.Mappings.SERVICE_NOT_AVAILABLE_JSON;
+import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
+import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
-import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,15 +46,8 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
@@ -68,128 +58,170 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.practice.it.configs.WireMockServerConfig;
 import com.practice.it.models.ResponseFromMockServer;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
 public class CurrencyConversionControllerIT {
-
-    private TestRestTemplate testRestTemplate;
-
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
     private WireMockServerConfig wireMockServerConfig;
 
-    @LocalServerPort
-    private int port;
+    @Test
+    public void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+            throws Exception {
+        String rawResponse = getMappingFromExternalApi(COUNTRIES_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), COUNTRIES_API);
+        String expectedProcessedResponse = getMappingFromInternalApi(COUNTRIES_JSON);
+        prepareStubServer(ALL_COUNTRIES_EXTERNAL, responseFromMockServer);
 
-    @PostConstruct
-    public void iniTestRestTemplate() {
-        testRestTemplate = new TestRestTemplate(restTemplateBuilder.rootUri("http://localhost:" + port));
-        testRestTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-        testRestTemplate.getRestTemplate().getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        ResponseEntity<String> responseFromCurrencyApi = doRequest(ALL_COUNTRIES_INTERNAL);
+
+        assertEquals(OK.value(), responseFromCurrencyApi.getStatusCode().value());
+        JSONAssert.assertEquals(expectedProcessedResponse, responseFromCurrencyApi.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+            throws Exception {
+        String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
+        prepareStubServer(ALL_COUNTRIES_EXTERNAL, responseFromMockServer);
+
+        ResponseEntity<String> actualProcessedResponse = doRequest(ALL_COUNTRIES_INTERNAL);
+
+        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testGetCountriesByCurrencyCode_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+            throws Exception {
+        String rawResponse = getMappingFromExternalApi(COUNTRY_OF_HUF_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), COUNTRIES_API);
+        String expectedProcessedResponse = getMappingFromInternalApi(COUNTRY_OF_HUF_JSON);
+        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), responseFromMockServer);
+
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF));
+
+        assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testGetCountriesByCurrencyCode_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+            throws Exception {
+        String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), COUNTRIES_API);
+        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), responseFromMockServer);
+
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF));
+
+        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testGetCountriesByCurrencyCode_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg()
+            throws Exception {
+        String errorMsg = getMappingFromInternalApi(INVALID_CURRENCY_CODE_JSON);
+
+        ResponseEntity<String> actualProcessedResponse = doRequest(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE);
+
+        assertEquals(BAD_REQUEST.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+            throws Exception {
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), RATES_API);
+        String expectedProcessedResponse = getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
+
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF));
+
+        assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+            throws Exception {
+        String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), RATES_API);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
+
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF));
+
+        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGettersWhen3rdPartyApiIsAvailable")
-    public void testGetters_When3rdPartyApiIsAvailable_ThenReturnCorrectResponse(String requestToMockServerUri,
-                                                                                    ResponseFromMockServer responseFromMockServer,
-                                                                                    String requestToCurrencyConversionApiUri,
-                                                                                    String responseFromCurrencyConversionApi)
+    @MethodSource("provideArgumentsForTestGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode")
+    public void testGetHighestAndLowestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
             throws Exception {
-        prepareStubServer(requestToMockServerUri, responseFromMockServer);
 
-        ResponseEntity<String> response = doRequest(requestToCurrencyConversionApiUri);
+        ResponseEntity<String> actualProcessedResponse = doRequest(requestUri);
 
-        assertEquals(OK.value(), response.getStatusCode().value());
-        JSONAssert.assertEquals(responseFromCurrencyConversionApi, response.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        assertEquals(BAD_REQUEST.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGettersWhen3rdPartyApiIsAvailable()
-            throws Exception {
-        String allCountriesResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRIES_JSON);
-        ResponseFromMockServer allCountriesExternal = new ResponseFromMockServer(allCountriesResponseExternal, OK.value(), COUNTRIES_API);
-        String allCountriesInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRIES_JSON);
-
-        String countriesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + COUNTRY_OF_HUF_JSON);
-        ResponseFromMockServer countriesOfHufExternal = new ResponseFromMockServer(countriesOfHufResponseExternal, OK.value(), COUNTRIES_API);
-        String countriesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + COUNTRY_OF_HUF_JSON);
-
-        String lowestAndHighestRatesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
-        ResponseFromMockServer lowestAndHighestRatesOfHufExternal = new ResponseFromMockServer(lowestAndHighestRatesOfHufResponseExternal, OK.value(), RATES_API);
-        String lowestAndHighestRatesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON);
-
-        String latestRatesOfHufResponseExternal = readJsonFrom(RESPONSES_OF_EXTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
-        ResponseFromMockServer latestRatesOfHufExternal = new ResponseFromMockServer(latestRatesOfHufResponseExternal, OK.value(), RATES_API);
-        String latestRatesOfHufInternal = readJsonFrom(EXPECTED_RESPONSES_OF_INTERNAL_API_DIR + LATEST_RATES_OF_HUF_JSON);
-
+    private static Stream<Arguments> provideArgumentsForTestGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode() {
+        String invalidCurrencyCodeMsg = getMappingFromInternalApi(INVALID_CURRENCY_CODE_JSON);
+        String missingCurrencyCodeMsg = getMappingFromInternalApi(MISSING_CURRENCY_CODE_JSON);
         return Stream.of(
-            Arguments.of(ALL_COUNTRIES_EXTERNAL, allCountriesExternal, ALL_COUNTRIES_INTERNAL, allCountriesInternal),
-            Arguments.of(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), countriesOfHufExternal,
-                            MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF), countriesOfHufInternal),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), lowestAndHighestRatesOfHufExternal,
-                            MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF), lowestAndHighestRatesOfHufInternal),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), latestRatesOfHufExternal,
-                            MessageFormat.format(LATEST_RATES_INTERNAL, HUF), latestRatesOfHufInternal)
+            Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCodeMsg),
+            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, HUF), missingCurrencyCodeMsg)
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGettersWhen3rdPartyApiIsDown")
-    public void testGetters_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg(String requestToMockServerUri,
-                                                                                ResponseFromMockServer responseFromMockServer,
-                                                                                String requestToCurrencyConversionApiUri)
+    @Test
+    public void testGetLatestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
-        prepareStubServer(requestToMockServerUri, responseFromMockServer);
-        String expectedErrorMsg = readJsonFrom(ERRORS_DIR + SERVICE_NOT_AVAILABLE_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), RATES_API);
+        String expectedProcessedResponse = getMappingFromInternalApi(LATEST_RATES_OF_HUF_JSON);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
 
-        ResponseEntity<String> response = doRequest(requestToCurrencyConversionApiUri);
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, HUF));
 
-        assertEquals(SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
-        JSONAssert.assertEquals(expectedErrorMsg, response.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGettersWhen3rdPartyApiIsDown()
+    @Test
+    public void testGetLatestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
-        String errorMsg = readJsonFrom(ERRORS_DIR + SERVICE_NOT_AVAILABLE_JSON);
+        String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), RATES_API);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
 
-        ResponseFromMockServer allCountries = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), COUNTRIES_API);
-        ResponseFromMockServer countriesOfHuf = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), COUNTRIES_API);
-        ResponseFromMockServer lowestAndHighestRatesOfHUF = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), RATES_API);
-        ResponseFromMockServer latestRatesOfHuf = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), RATES_API);
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, HUF));
 
-        return Stream.of(
-            Arguments.of(ALL_COUNTRIES_EXTERNAL, allCountries, ALL_COUNTRIES_INTERNAL),
-            Arguments.of(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), countriesOfHuf,
-                            MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF)),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), lowestAndHighestRatesOfHUF,
-                            MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF)),
-            Arguments.of(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), latestRatesOfHuf,
-                            MessageFormat.format(LATEST_RATES_INTERNAL, HUF))
-        );
+        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGettersWhenInternalApiUriIsMalformed")
-    public void testGetters_WhenInternalApiUriIsMalformed_ThenReturn503WithErrorMsg(String requestToCurrencyConversionApiUri, String errorMsg)
+    @MethodSource("provideArgumentsForTestGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode")
+    public void testGetLatestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
             throws Exception {
 
-        ResponseEntity<String> response = doRequest(requestToCurrencyConversionApiUri);
+        ResponseEntity<String> actualProcessedResponse = doRequest(requestUri);
 
-        assertEquals(BAD_REQUEST.value(), response.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, response.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        assertEquals(BAD_REQUEST.value(), actualProcessedResponse.getStatusCode().value());
+        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGettersWhenInternalApiUriIsMalformed()
-            throws Exception {
-        String invalidCurrencyCode = readJsonFrom(ERRORS_DIR + INVALID_CURRENCY_CODE_JSON);
-        String missingCurrencyCode = readJsonFrom(ERRORS_DIR + MISSING_CURRENCY_CODE_JSON);
+    private static Stream<Arguments> provideArgumentsForTestGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode() {
+        String invalidCurrencyCodeMsg = getMappingFromInternalApi(INVALID_CURRENCY_CODE_JSON);
+        String missingCurrencyCodeMsg = getMappingFromInternalApi(MISSING_CURRENCY_CODE_JSON);
         return Stream.of(
-            Arguments.of(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
-            Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
-            Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCode),
-            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, HUF), missingCurrencyCode),
-            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, HUF), missingCurrencyCode)
+            Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCodeMsg),
+            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, HUF), missingCurrencyCodeMsg)
         );
     }
 
@@ -201,20 +233,13 @@ public class CurrencyConversionControllerIT {
         }
         if (response.getHeaders() != null) {
             List<HttpHeader> responseHeaders = response.getHeaders()
-                                                            .entrySet()
-                                                            .stream()
-                                                            .map(entry -> new HttpHeader(entry.getKey(), entry.getValue()))
-                                                            .collect(Collectors.toList());
+                                                        .entrySet()
+                                                        .stream()
+                                                        .map(entry -> new HttpHeader(entry.getKey(), entry.getValue()))
+                                                        .collect(Collectors.toList());
             responseDefinitionBuilder.withHeaders(new HttpHeaders(responseHeaders));
         }
         wireMockServerConfig.wireMockServer().stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
-    }
-
-    private ResponseEntity<String> doRequest(String requestUri) {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.add(ACCEPT_HEADER, MediaType.APPLICATION_JSON_VALUE);
-        HttpEntity requestEntity = new HttpEntity(headers);
-        return testRestTemplate.exchange(requestUri, HttpMethod.GET, requestEntity, String.class);
     }
 
 }
