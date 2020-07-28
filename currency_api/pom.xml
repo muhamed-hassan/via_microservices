@@ -126,6 +126,7 @@
         <version>${jacoco-maven-plugin.version}</version>
         <configuration>
           <excludes>
+            <exclude>com/practice/aspects/*</exclude>
             <exclude>com/practice/configs/**/*</exclude>
             <exclude>com/practice/integration/**/*</exclude>
             <exclude>com/practice/transfomers/*</exclude>
