@@ -1,5 +1,7 @@
 package com.practice.services.impl;
 
+import static com.practice.configs.CachingConfig.ALL_COUNTRIES;
+import static com.practice.configs.CachingConfig.COUNTRIES_BY_CURRENCY_CODE;
 import static java.util.Spliterator.ORDERED;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.joining;
@@ -39,7 +41,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Autowired
     private ResponseTransformer currncyConversionTransformer;
 
-    @Cacheable(cacheNames = "allCountries")
+    @Cacheable(cacheNames = ALL_COUNTRIES)
     @Override
     public Map<String, String> getCountriesWithTheirCurrencyCodes() {
         try {
@@ -59,7 +61,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
         }
     }
 
-    @Cacheable(cacheNames = "countriesByCurrencyCode")
+    @Cacheable(cacheNames = COUNTRIES_BY_CURRENCY_CODE)
     @Override
     public List<String> getCountriesByCurrencyCode(String currencyCode) {
         try {

@@ -13,11 +13,14 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class CachingConfig {
 
+    public static final String ALL_COUNTRIES = "allCountries";
+    public static final String COUNTRIES_BY_CURRENCY_CODE = "countriesByCurrencyCode";
+
     @Bean
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
-        cacheManager.setCaches(List.of(new ConcurrentMapCache("allCountries"),
-                                        new ConcurrentMapCache("countriesByCurrencyCode")));
+        cacheManager.setCaches(List.of(new ConcurrentMapCache(ALL_COUNTRIES),
+                                        new ConcurrentMapCache(COUNTRIES_BY_CURRENCY_CODE)));
         return cacheManager;
     }
 
