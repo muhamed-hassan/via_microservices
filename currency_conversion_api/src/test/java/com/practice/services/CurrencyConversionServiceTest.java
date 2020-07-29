@@ -1,6 +1,6 @@
 package com.practice.services;
 
-import static com.practice.utils.Constants.HUF;
+import static com.practice.utils.Constants.ISK;
 import static com.practice.utils.Mappings.COUNTRIES_JSON;
 import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_CODE_JSON;
 import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_AND_CODE_JSON;
@@ -8,10 +8,10 @@ import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_COUNTRY_NAME_AN
 import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_COUNTRY_NAME_JSON;
 import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_CURRENCIES_AND_CODE_JSON;
 import static com.practice.utils.Mappings.COUNTRIES_WITH_INVALID_CURRENCIES_JSON;
-import static com.practice.utils.Mappings.COUNTRY_OF_HUF_JSON;
-import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON;
-import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON_WITH_INVALID_RATES;
-import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON;
+import static com.practice.utils.Mappings.COUNTRY_OF_ISK_JSON;
+import static com.practice.utils.Mappings.LATEST_RATES_OF_ISK_JSON;
+import static com.practice.utils.Mappings.LATEST_RATES_OF_ISK_JSON_WITH_INVALID_RATES;
+import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
 import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
 import static org.hamcrest.CoreMatchers.is;
@@ -129,17 +129,17 @@ public class CurrencyConversionServiceTest {
     @Test
     public void testGetCountriesByCurrencyCode_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(COUNTRY_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(COUNTRY_OF_ISK_JSON);
         when(countryProvider.getCountriesByCurrencyCode(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        List<String> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(COUNTRY_OF_HUF_JSON), List.class);
+        List<String> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(COUNTRY_OF_ISK_JSON), List.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Collector.class));
 
-        List<String> actualResult = conversionService.getCountriesByCurrencyCode(HUF);
+        List<String> actualResult = conversionService.getCountriesByCurrencyCode(ISK);
 
         assertThat(actualResult, is(processedResponse));
     }
@@ -150,7 +150,7 @@ public class CurrencyConversionServiceTest {
             .when(countryProvider).getCountriesByCurrencyCode(anyString());
 
         assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getCountriesByCurrencyCode(HUF));
+            () -> conversionService.getCountriesByCurrencyCode(ISK));
     }
 
     @Test
@@ -166,23 +166,23 @@ public class CurrencyConversionServiceTest {
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
         assertThrows(RuntimeException.class,
-            () -> conversionService.getCountriesByCurrencyCode(HUF));
+            () -> conversionService.getCountriesByCurrencyCode(ISK));
     }
 
     @Test
     public void testGetHighestAndLowestRatesByBase_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         doReturn(ResponseEntity.ok(rawResponse))
             .when(rateProvider).getLatestRatesByBase(anyString());
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON), Map.class);
+        Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON), Map.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
-        Map<String, Double> actualResult = conversionService.getHighestAndLowestRatesByBase(HUF);
+        Map<String, Double> actualResult = conversionService.getHighestAndLowestRatesByBase(ISK);
 
         assertThat(actualResult, is(processedResponse));
 
@@ -194,13 +194,13 @@ public class CurrencyConversionServiceTest {
             .when(rateProvider).getLatestRatesByBase(anyString());
 
         assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getHighestAndLowestRatesByBase(HUF));
+            () -> conversionService.getHighestAndLowestRatesByBase(ISK));
     }
 
     @Test
     public void testGetHighestAndLowestRatesByBase_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON_WITH_INVALID_RATES);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON_WITH_INVALID_RATES);
         doReturn(ResponseEntity.ok(rawResponse))
             .when(rateProvider).getLatestRatesByBase(anyString());
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
@@ -208,23 +208,23 @@ public class CurrencyConversionServiceTest {
             .thenReturn(parsedResponse);
 
         assertThrows(RuntimeException.class,
-            () -> conversionService.getHighestAndLowestRatesByBase(HUF));
+            () -> conversionService.getHighestAndLowestRatesByBase(ISK));
     }
 
     @Test
     public void testGetLatestRatesByBase_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         when(rateProvider.getLatestRatesByBase(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LATEST_RATES_OF_HUF_JSON), Map.class);
+        Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LATEST_RATES_OF_ISK_JSON), Map.class);
         doReturn(processedResponse)
             .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
-        Map<String, Double> actualResult = conversionService.getLatestRatesByBase(HUF);
+        Map<String, Double> actualResult = conversionService.getLatestRatesByBase(ISK);
 
         assertThat(actualResult, is(processedResponse));
     }
@@ -235,13 +235,13 @@ public class CurrencyConversionServiceTest {
             .when(rateProvider).getLatestRatesByBase(anyString());
 
         assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getLatestRatesByBase(HUF));
+            () -> conversionService.getLatestRatesByBase(ISK));
     }
 
     @Test
     public void testGetLatestRatesByBase_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON_WITH_INVALID_RATES);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON_WITH_INVALID_RATES);
         when(rateProvider.getLatestRatesByBase(anyString()))
             .thenReturn(ResponseEntity.ok(rawResponse));
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
@@ -249,7 +249,7 @@ public class CurrencyConversionServiceTest {
             .thenReturn(parsedResponse);
 
         assertThrows(RuntimeException.class,
-            () -> conversionService.getLatestRatesByBase(HUF));
+            () -> conversionService.getLatestRatesByBase(ISK));
     }
 
 }

@@ -4,6 +4,9 @@ server:
     whitelabel:
       enabled: false
 
+ribbon:
+  ReadTimeout: 5000
+
 eureka:
   client:
     register-with-eureka: true
@@ -18,3 +21,6 @@ zuul:
     currency_conversion_api:
       path: /currency-conversion-api/**
       serviceId: currency_conversion_api
+#    employee_api:
+#      path: /employee_api-api/**
+#      serviceId: employee_api_api

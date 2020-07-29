@@ -17,13 +17,13 @@ import static com.practice.it.helpers.InternalEndpoints.LATEST_RATES_INTERNAL_WI
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE;
-import static com.practice.utils.Constants.HUF;
+import static com.practice.utils.Constants.ISK;
 import static com.practice.utils.HttpClient.doRequest;
 import static com.practice.utils.Mappings.COUNTRIES_JSON;
-import static com.practice.utils.Mappings.COUNTRY_OF_HUF_JSON;
+import static com.practice.utils.Mappings.COUNTRY_OF_ISK_JSON;
 import static com.practice.utils.Mappings.INVALID_CURRENCY_CODE_JSON;
-import static com.practice.utils.Mappings.LATEST_RATES_OF_HUF_JSON;
-import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON;
+import static com.practice.utils.Mappings.LATEST_RATES_OF_ISK_JSON;
+import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON;
 import static com.practice.utils.Mappings.MISSING_CURRENCY_CODE_JSON;
 import static com.practice.utils.Mappings.SERVICE_NOT_AVAILABLE_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
@@ -96,12 +96,12 @@ public class CurrencyConversionControllerIT {
     @Test
     public void testGetCountriesByCurrencyCode_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(COUNTRY_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(COUNTRY_OF_ISK_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), COUNTRIES_API);
-        String expectedProcessedResponse = getMappingFromInternalApi(COUNTRY_OF_HUF_JSON);
-        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), responseFromMockServer);
+        String expectedProcessedResponse = getMappingFromInternalApi(COUNTRY_OF_ISK_JSON);
+        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF));
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK));
 
         assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
         JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
@@ -112,9 +112,9 @@ public class CurrencyConversionControllerIT {
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
-        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, HUF), responseFromMockServer);
+        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, HUF));
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK));
 
         assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
         JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
@@ -134,12 +134,12 @@ public class CurrencyConversionControllerIT {
     @Test
     public void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), RATES_API);
-        String expectedProcessedResponse = getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_HUF_JSON);
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
+        String expectedProcessedResponse = getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF));
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK));
 
         assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
         JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
@@ -150,9 +150,9 @@ public class CurrencyConversionControllerIT {
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, HUF));
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK));
 
         assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
         JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
@@ -174,19 +174,19 @@ public class CurrencyConversionControllerIT {
         String missingCurrencyCodeMsg = getMappingFromInternalApi(MISSING_CURRENCY_CODE_JSON);
         return Stream.of(
             Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCodeMsg),
-            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, HUF), missingCurrencyCodeMsg)
+            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, ISK), missingCurrencyCodeMsg)
         );
     }
 
     @Test
     public void testGetLatestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
-        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_HUF_JSON);
+        String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), RATES_API);
-        String expectedProcessedResponse = getMappingFromInternalApi(LATEST_RATES_OF_HUF_JSON);
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
+        String expectedProcessedResponse = getMappingFromInternalApi(LATEST_RATES_OF_ISK_JSON);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, HUF));
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, ISK));
 
         assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
         JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
@@ -197,9 +197,9 @@ public class CurrencyConversionControllerIT {
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, HUF), responseFromMockServer);
+        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, HUF));
+        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, ISK));
 
         assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
         JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
@@ -221,7 +221,7 @@ public class CurrencyConversionControllerIT {
         String missingCurrencyCodeMsg = getMappingFromInternalApi(MISSING_CURRENCY_CODE_JSON);
         return Stream.of(
             Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, invalidCurrencyCodeMsg),
-            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, HUF), missingCurrencyCodeMsg)
+            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, ISK), missingCurrencyCodeMsg)
         );
     }
 

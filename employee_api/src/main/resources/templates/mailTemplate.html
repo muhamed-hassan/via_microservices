@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+	<h2>
+		Base: <span th:text="${base}"></span>
+	</h2>
+
+	<table style="width: 100%">
+		<tr th:each="entry : ${rates}">
+			<td th:text="${entry.key}"></td>
+			<td th:text="${entry.value}"></td>
+		</tr>
+	</table>
+</body>
+</html>
