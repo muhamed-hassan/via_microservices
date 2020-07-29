@@ -1,0 +1,14 @@
+server:
+  port: 1111
+
+mock-server:
+  port: 5555
+
+external:
+  api:
+    countries: http://localhost:${mock-server.port}/rest/v2
+    rates: http://localhost:${mock-server.port}/latest
+
+spring:
+  cache:
+    type: NONE
