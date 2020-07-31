@@ -1,5 +1,7 @@
 package com.practice.aspects;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;

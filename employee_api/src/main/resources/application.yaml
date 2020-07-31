@@ -1,3 +1,7 @@
+spring:
+  liquibase:
+    changeLog: "classpath:db/changelog/changelog-master.yaml"
+
 server:
   port: 0
   error:

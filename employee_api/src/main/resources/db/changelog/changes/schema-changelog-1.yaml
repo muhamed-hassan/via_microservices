@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: adding_initial_schema
+      author: admin
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    primaryKey: true
+                  name: id
+                  type: integer
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(250)
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                  name: username
+                  type: VARCHAR(250)
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                  name: email
+                  type: VARCHAR(250)
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                  name: phone_number
+                  type: VARCHAR(7)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: age
+                  type: integer
+              - column:
+                  constraints:
+                    nullable: false
+                  name: version
+                  type: integer
+            schemaName: public
+            tableName: employee
+        - createIndex:
+            columns:
+              - column:
+                  name: ((lower(username)))
+              - column:
+                  name: ((lower(email)))
+            schemaName: public
+            tableName:  employee
+        - addAutoIncrement:
+            columnName: id
+            incrementBy: 1
+            schemaName: public
+            tableName: employee
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    primaryKey: true
+                  name: id
+                  type: integer
+              - column:
+                  constraints:
+                    nullable: false
+                  name: base
+                  type: CHAR(3)
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                  name: email
+                  type: VARCHAR(250)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: version
+                  type: integer
+            schemaName: public
+            tableName: rate_alert
