@@ -31,6 +31,7 @@ import com.practice.persistence.entities.Employee;
 import com.practice.persistence.entities.RateAlert;
 import com.practice.persistence.repositories.RateAlertRepository;
 import com.practice.services.AlertSchedularService;
+import com.practice.services.utils.ServiceErrorHandler;
 import com.practice.transfomers.EntityTransformer;
 import com.practice.web.dtos.RateAlertDto;
 
@@ -49,8 +50,8 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
     @Autowired
     private ITemplateEngine templateEngine;
 
-    @Autowired
-    private EntityTransformer entityTransformer;
+//    @Autowired
+//    private EntityTransformer entityTransformer;
 
 //    @Autowired
 //    private EmployeeServiceErrorHandler employeeServiceErrorHandler;
@@ -63,25 +64,6 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
 
     @Value("${chunk-size}")
     private int chunkSize;
-    
-    // assuming employee can register only for one rate
-    @Transactional
-    @Override
-    public void registerForScheduledMailAlert(RateAlertDto rateAlertDto) {
-        try {
-            rateAlertRepository.save(entityTransformer.toEntity(rateAlertDto, RateAlert.class));
-        } catch (DataIntegrityViolationException e) {
-            String errorMsg = e.getMessage();
-            String violatedField = Stream.of(Employee.class.getDeclaredFields())
-                .map(Field::getName)
-                .filter(fieldName -> errorMsg.matches(".*(_"+fieldName+"_).*"))
-                .findFirst()
-                .get();
-            //            throw wrapDataIntegrityViolationException(e);
-            // add custom msg according to the thrown exception msg
-            throw new IllegalArgumentException("DB constraint is violated for this field: " + violatedField);
-        }
-    }
 
     @Scheduled(cron = "${via.scheduled-email.rate}")
     @Override
@@ -148,16 +130,16 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
         }
     }
 
-    private DbConstraintViolationException wrapDataIntegrityViolationException(DataIntegrityViolationException e) {
-        String exceptionMessage = e.getMostSpecificCause().getMessage();
-        String errorMsg = null;
-        if (exceptionMessage != null) {
-            String lowerCaseExceptionMessage = exceptionMessage.toLowerCase();
-            if (lowerCaseExceptionMessage.contains(RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL)) {
-                errorMsg = Messages.EMAIL_ALREADY_EXIST;
-            }
-        }
-        return new DbConstraintViolationException(errorMsg, e);
-    }
+//    private DbConstraintViolationException wrapDataIntegrityViolationException(DataIntegrityViolationException e) {
+//        String exceptionMessage = e.getMostSpecificCause().getMessage();
+//        String errorMsg = null;
+//        if (exceptionMessage != null) {
+//            String lowerCaseExceptionMessage = exceptionMessage.toLowerCase();
+//            if (lowerCaseExceptionMessage.contains(RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL)) {
+//                errorMsg = Messages.EMAIL_ALREADY_EXIST;
+//            }
+//        }
+//        return new DbConstraintViolationException(errorMsg, e);
+//    }
 
 }

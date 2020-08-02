@@ -112,9 +112,6 @@ public class Employee extends BaseEntity {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
             .append(id)
-            .append(username)
-            .append(email)
-            .append(phoneNumber)
             .toHashCode();
     }
 
@@ -127,9 +124,6 @@ public class Employee extends BaseEntity {
         SavedEmployeeDto that = (SavedEmployeeDto) other;
         return new EqualsBuilder()
             .append(id, that.getId())
-            .append(username, that.getUsername())
-            .append(email, that.getEmail())
-            .append(phoneNumber, that.getPhoneNumber())
             .isEquals();
     }
 

@@ -50,9 +50,6 @@ public class SavedEmployeeDto extends BaseEmployeeDto {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
             .append(id)
-            .append(getUsername())
-            .append(getEmail())
-            .append(getPhoneNumber())
             .toHashCode();
     }
 
@@ -65,9 +62,6 @@ public class SavedEmployeeDto extends BaseEmployeeDto {
         SavedEmployeeDto that = (SavedEmployeeDto) other;
         return new EqualsBuilder()
             .append(id, that.getId())
-            .append(getUsername(), that.getUsername())
-            .append(getEmail(), that.getEmail())
-            .append(getPhoneNumber(), that.getPhoneNumber())
             .isEquals();
     }
 

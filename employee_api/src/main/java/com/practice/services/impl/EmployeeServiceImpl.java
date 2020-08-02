@@ -1,42 +1,39 @@
 package com.practice.services.impl;
 
-import static com.practice.persistence.entities.Employee.Constraints.EMPLOYEE_UNIQUE_CONSTRAINT_EMAIL;
-import static com.practice.persistence.entities.Employee.Constraints.EMPLOYEE_UNIQUE_CONSTRAINT_PHONE_NUMBER;
-import static com.practice.persistence.entities.Employee.Constraints.EMPLOYEE_UNIQUE_CONSTRAINT_USERNAME;
-import static com.practice.persistence.entities.RateAlert.Constraints.RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL;
-
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.stream.Stream;
 
-import org.bouncycastle.util.io.Streams;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.practice.configs.constants.Messages;
-import com.practice.exceptions.DbConstraintViolationException;
 import com.practice.exceptions.EntityNotFoundException;
 import com.practice.exceptions.NoResultException;
 import com.practice.persistence.entities.Employee;
+import com.practice.persistence.entities.RateAlert;
 import com.practice.persistence.repositories.EmployeeRepository;
+import com.practice.persistence.repositories.RateAlertRepository;
 import com.practice.persistence.specs.EmployeeSpecification;
 import com.practice.services.EmployeeService;
-import com.practice.services.ServiceErrorHandler;
+import com.practice.services.utils.ServiceErrorHandler;
 import com.practice.transfomers.DtoTransformer;
 import com.practice.transfomers.EntityTransformer;
 import com.practice.web.dtos.NewEmployeeDto;
+import com.practice.web.dtos.RateAlertDto;
 import com.practice.web.dtos.SavedEmployeeDto;
 
-//@CacheConfig(cacheNames = CachingConfig.Stores.EMPLOYEES)
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private RateAlertRepository rateAlertRepository;
 
     @Autowired
     private EntityTransformer entityTransformer;
@@ -50,7 +47,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private ServiceErrorHandler serviceErrorHandler;
 
-//    @CachePut(value = CachingConfig.Stores.EMPLOYEES)
+    @Cacheable(value = "EmployeeService::getEmployees()")
     @Override
     public List<SavedEmployeeDto> getEmployees() {
         List<SavedEmployeeDto> result = employeeRepository.findAllSavedEmployees();
@@ -59,8 +56,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         return result;
     }
-// TODO refactor this shit
-//    @CachePut(value = CachingConfig.Stores.EMPLOYEES)
+
+    @Cacheable(value = "EmployeeService::getEmployeeByFieldCriteria()")
     @Override
     public SavedEmployeeDto getEmployeeByFieldCriteria(String fieldCriteria) {
         String[] criterionTokens = fieldCriteria.split(":");
@@ -75,29 +72,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             } else {
                 throw new UnsupportedOperationException("Invalid criteria allowed criteria are id, email and username in the form of fieldName:validValue");
             }
-            return dtoTransformer.toDto(employeeRepository.findOne(specification)
-                                        .orElseThrow(EntityNotFoundException::new), SavedEmployeeDto.class);
+            Employee employee = employeeRepository.findOne(specification)
+                                                    .orElseThrow(EntityNotFoundException::new);
+            return dtoTransformer.toDto(employee, SavedEmployeeDto.class);
         } else {
             throw new IllegalArgumentException("Invalid criteria format, it should be in the form of fieldName:fieldValue");
         }
     }
 
-
-//    @CachePut(value = CachingConfig.Stores.EMPLOYEES)
+    @CacheEvict(value = "EmployeeService::getEmployees()", allEntries = true)
     @Transactional
     @Override
     public long createEmployee(NewEmployeeDto employeeDto) {
         try {
             return employeeRepository.save(entityTransformer.toEntity(employeeDto, Employee.class)).getId();
         } catch (DataIntegrityViolationException e) {
-            // ^.*_name_.*$
-            throw serviceErrorHandler.wrapDataIntegrityViolationException( e, Employee.class);
+            throw serviceErrorHandler.wrapDataIntegrityViolationException(e, Employee.class);
         }
     }
 
-
-
-//    @CachePut(value = CachingConfig.Stores.EMPLOYEES, key = "#id")
+    @CacheEvict(value = { "EmployeeService::getEmployees()", "EmployeeService::getEmployeeByFieldCriteria()" }, allEntries = true)
     @Transactional
     @Override
     public void updateEmployeeEmailById(long id, String email) {
@@ -106,14 +100,13 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setEmail(email);
             employeeRepository.save(employee);
         } catch (DataIntegrityViolationException e) {
-//            throw wrapDataIntegrityViolationException(e);
-            throw new IllegalArgumentException("DB constraint is violated for this field: email");
+            throw serviceErrorHandler.wrapDataIntegrityViolationException(e, Employee.class);
         } catch (javax.persistence.EntityNotFoundException e) {
             throw new EntityNotFoundException();
         }
     }
 
-//    @CacheEvict(value = CachingConfig.Stores.EMPLOYEES, key = "#id")
+    @CacheEvict(value = { "EmployeeService::getEmployees()", "EmployeeService::getEmployeeByFieldCriteria()" }, allEntries = true)
     @Transactional
     @Override
     public void deleteEmployeeById(long id) {
@@ -124,20 +117,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-//    private DbConstraintViolationException wrapDataIntegrityViolationException(DataIntegrityViolationException e) {
-//        String exceptionMessage = e.getMostSpecificCause().getMessage();
-//        String errorMsg = null;
-//        if (exceptionMessage != null) {
-//            String lowerCaseExceptionMessage = exceptionMessage.toLowerCase();
-//            if (lowerCaseExceptionMessage.contains(EMPLOYEE_UNIQUE_CONSTRAINT_USERNAME)) {
-//                errorMsg = Messages.USER_NAME_ALREADY_EXIST;
-//            } else if (lowerCaseExceptionMessage.contains(EMPLOYEE_UNIQUE_CONSTRAINT_EMAIL)) {
-//                errorMsg = Messages.EMAIL_ALREADY_EXIST;
-//            } else if (lowerCaseExceptionMessage.contains(EMPLOYEE_UNIQUE_CONSTRAINT_PHONE_NUMBER)) {
-//                errorMsg = Messages.PHONE_NUMBER_ALREADY_EXIST;
-//            }
-//        }
-//        return new DbConstraintViolationException(errorMsg, e);
-//    }
+    // assuming employee can register only for one rate
+    @Transactional
+    @Override
+    public void registerForScheduledMailAlert(RateAlertDto rateAlertDto) {
+        try {
+            rateAlertRepository.save(entityTransformer.toEntity(rateAlertDto, RateAlert.class));
+        } catch (DataIntegrityViolationException e) {
+            throw serviceErrorHandler.wrapDataIntegrityViolationException(e, RateAlert.class);
+        }
+    }
 
 }

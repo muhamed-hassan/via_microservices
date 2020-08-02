@@ -93,7 +93,7 @@ public class EmployeeController {
     })
     @PostMapping("alerts/rates")
     public ResponseEntity<Void> registerForScheduledMailAlert(@RequestBody @Valid RateAlertDto rateAlertDto) {
-        alertSchedularService.registerForScheduledMailAlert(rateAlertDto);
+        employeeService.registerForScheduledMailAlert(rateAlertDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

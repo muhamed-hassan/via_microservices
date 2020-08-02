@@ -3,6 +3,7 @@ package com.practice.services;
 import java.util.List;
 
 import com.practice.web.dtos.NewEmployeeDto;
+import com.practice.web.dtos.RateAlertDto;
 import com.practice.web.dtos.SavedEmployeeDto;
 
 public interface EmployeeService {
@@ -16,5 +17,7 @@ public interface EmployeeService {
     void updateEmployeeEmailById(long id, String email);
 
     void deleteEmployeeById(long id);
+
+    void registerForScheduledMailAlert(RateAlertDto rateAlertDto);
 
 }
