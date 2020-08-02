@@ -5,10 +5,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.practice.configs.constants.Messages;
 import com.practice.configs.constants.Patterns;
 import com.practice.configs.constants.Rules;
@@ -16,8 +12,6 @@ import com.practice.configs.constants.Rules;
 import io.swagger.annotations.ApiModelProperty;
 
 public class BaseEmployeeDto extends BaseDto {
-
-    // TODO make custom composite annotations
 
     @ApiModelProperty(value = "Name", required = true, example = "name")
     @NotNull(message = Messages.NAME_IS_MISSING)
@@ -38,8 +32,6 @@ public class BaseEmployeeDto extends BaseDto {
     @Min(value = Rules.MIN_AGE_FOR_WORKING, message = Messages.AGE_SHOULD_BE_GE_22)
     @Max(value = Rules.MAX_AGE_FOR_WORKING, message = Messages.AGE_SHOULD_BE_LE_59)
     private int age;
-
-
 
     public String getName() {
         return name;
@@ -72,8 +64,5 @@ public class BaseEmployeeDto extends BaseDto {
     public void setAge(int age) {
         this.age = age;
     }
-
-
-
 
 }

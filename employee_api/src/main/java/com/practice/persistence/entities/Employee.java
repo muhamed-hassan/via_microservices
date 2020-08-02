@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -20,15 +21,9 @@ import com.practice.configs.constants.Patterns;
 import com.practice.configs.constants.Rules;
 import com.practice.web.dtos.SavedEmployeeDto;
 
-@Table(name = "employee"/*,
-        uniqueConstraints = {
-            @UniqueConstraint(columnNames = "username", name = Employee.Constraints.EMPLOYEE_UNIQUE_CONSTRAINT_USERNAME),
-            @UniqueConstraint(columnNames = "email", name = Employee.Constraints.EMPLOYEE_UNIQUE_CONSTRAINT_EMAIL),
-            @UniqueConstraint(columnNames = "phone_number", name = Employee.Constraints.EMPLOYEE_UNIQUE_CONSTRAINT_PHONE_NUMBER)
-        }*/
-)
+@Table(name = "employee")
 @Entity
-public class Employee extends BaseEntity {
+public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,7 +41,6 @@ public class Employee extends BaseEntity {
 
     @NotNull(message = Messages.EMAIL_IS_MISSING)
     @Email(message = Messages.EMAIL_IS_INVALID)
-//@EmailRule
     @Column
     private String email;
 
@@ -59,6 +53,9 @@ public class Employee extends BaseEntity {
     @Max(value = Rules.MAX_AGE_FOR_WORKING, message = Messages.AGE_SHOULD_BE_LE_59)
     @Column
     private int age;
+
+    @Version
+    private int version;
 
     public long getId() {
         return id;
@@ -108,10 +105,18 @@ public class Employee extends BaseEntity {
         this.age = age;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-            .append(id)
+                .append(id)
             .toHashCode();
     }
 
@@ -123,18 +128,8 @@ public class Employee extends BaseEntity {
             return false;
         SavedEmployeeDto that = (SavedEmployeeDto) other;
         return new EqualsBuilder()
-            .append(id, that.getId())
+                .append(id, that.getId())
             .isEquals();
-    }
-
-    public static final class Constraints {
-
-        public static final String EMPLOYEE_UNIQUE_CONSTRAINT_USERNAME = "employee_unique_username";
-        public static final String EMPLOYEE_UNIQUE_CONSTRAINT_EMAIL = "employee_unique_email";
-        public static final String EMPLOYEE_UNIQUE_CONSTRAINT_PHONE_NUMBER = "employee_unique_phone_number";
-
-        private Constraints() {}
-
     }
 
 }

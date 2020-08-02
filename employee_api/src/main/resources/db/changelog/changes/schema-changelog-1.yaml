@@ -76,10 +76,10 @@ databaseChangeLog:
                     unique: true
                   name: email
                   type: VARCHAR(250)
-              - column:
-                  constraints:
-                    nullable: false
-                  name: version
-                  type: integer
+            schemaName: public
+            tableName: rate_alert
+        - addAutoIncrement:
+            columnName: id
+            incrementBy: 1
             schemaName: public
             tableName: rate_alert

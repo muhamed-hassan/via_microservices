@@ -14,5 +14,4 @@ public interface RateAlertRepository extends JpaRepository<RateAlert, Long> {
     @Query("SELECT DISTINCT ra.base FROM RateAlert ra")
     List<String> findAllDistinctBases();
 
-
 }

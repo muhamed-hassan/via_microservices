@@ -1,45 +1,27 @@
 package com.practice.services.impl;
 
-import static com.practice.persistence.entities.RateAlert.Constraints.RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL;
-
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
-import com.practice.configs.constants.Messages;
-import com.practice.exceptions.DbConstraintViolationException;
-
-import com.practice.persistence.entities.Employee;
 import com.practice.persistence.entities.RateAlert;
 import com.practice.persistence.repositories.RateAlertRepository;
 import com.practice.services.AlertSchedularService;
-import com.practice.services.utils.ServiceErrorHandler;
-import com.practice.transfomers.EntityTransformer;
-import com.practice.web.dtos.RateAlertDto;
 
 @Service
 public class AlertSchedularServiceImpl implements AlertSchedularService {
-    
-//    @Autowired
-//    private CurrencyConversionService currencyConversionService;
 
     @Autowired
     private RateAlertRepository rateAlertRepository;
@@ -49,12 +31,6 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
 
     @Autowired
     private ITemplateEngine templateEngine;
-
-//    @Autowired
-//    private EntityTransformer entityTransformer;
-
-//    @Autowired
-//    private EmployeeServiceErrorHandler employeeServiceErrorHandler;
 
     @Value("${via.default-email.sender}")
     private String defaultSender;
@@ -129,17 +105,5 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
             }
         }
     }
-
-//    private DbConstraintViolationException wrapDataIntegrityViolationException(DataIntegrityViolationException e) {
-//        String exceptionMessage = e.getMostSpecificCause().getMessage();
-//        String errorMsg = null;
-//        if (exceptionMessage != null) {
-//            String lowerCaseExceptionMessage = exceptionMessage.toLowerCase();
-//            if (lowerCaseExceptionMessage.contains(RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL)) {
-//                errorMsg = Messages.EMAIL_ALREADY_EXIST;
-//            }
-//        }
-//        return new DbConstraintViolationException(errorMsg, e);
-//    }
 
 }

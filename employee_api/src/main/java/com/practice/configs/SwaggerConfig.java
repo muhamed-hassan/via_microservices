@@ -32,8 +32,8 @@ public class SwaggerConfig {
 
 	private ApiInfo apiEndPointsInfo() {
 		return new ApiInfoBuilder()
-					.title("Currency Conversion API")
-					.description("Handling various query operation related to currencies")
+					.title("Employee API")
+					.description("Handling CRUD operation of employees data")
 					.contact(new Contact("Mohamed Hassan", "www.example-via.net", "example-via@via.com"))
 					.license("Sample License")
 					.licenseUrl("http://www.example-license.org/LICENSE.html")

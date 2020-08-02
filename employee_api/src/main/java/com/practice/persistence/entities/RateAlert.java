@@ -16,11 +16,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.practice.configs.constants.Messages;
 import com.practice.configs.constants.Patterns;
 
-@Table(name = "rate_alert"/*,
-        uniqueConstraints = @UniqueConstraint(columnNames = "email", name = RateAlert.Constraints.RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL)
-*/)
+@Table(name = "rate_alert")
 @Entity
-public class RateAlert extends BaseEntity {
+public class RateAlert {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +31,6 @@ public class RateAlert extends BaseEntity {
 
     @NotNull(message = Messages.EMAIL_IS_MISSING)
     @Email(message = Messages.EMAIL_IS_INVALID)
-//@EmailRule
     @Column
     private String email;
 
@@ -64,9 +61,7 @@ public class RateAlert extends BaseEntity {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-            .append(id)
-            .append(base)
-            .append(email)
+                .append(id)
             .toHashCode();
     }
 
@@ -76,24 +71,10 @@ public class RateAlert extends BaseEntity {
             return true;
         if (other == null || getClass() != other.getClass())
             return false;
-        if (other.getClass() != getClass()) {
-            return false;
-        }
         RateAlert that = (RateAlert) other;
         return new EqualsBuilder()
-            .append(id, that.getId())
-            .append(base, that.getBase())
-            .append(email, that.getEmail())
+                .append(id, that.getId())
             .isEquals();
-    }
-
-
-    public static final class Constraints {
-
-        public static final String RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL = "rate_alert_unique_email";
-
-        private Constraints() {}
-
     }
 
 }

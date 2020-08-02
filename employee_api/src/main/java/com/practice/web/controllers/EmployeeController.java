@@ -2,10 +2,8 @@ package com.practice.web.controllers;
 
 import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,11 +22,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.practice.services.AlertSchedularService;
 import com.practice.services.EmployeeService;
-import com.practice.transfomers.DtoTransformer;
 import com.practice.web.dtos.EmailDto;
 import com.practice.web.dtos.NewEmployeeDto;
-import com.practice.web.dtos.SavedEmployeeDto;
 import com.practice.web.dtos.RateAlertDto;
+import com.practice.web.dtos.SavedEmployeeDto;
 import com.practice.web.validators.FieldCriteriaRule;
 
 import io.swagger.annotations.Api;
@@ -85,18 +82,6 @@ public class EmployeeController {
                                 .build();
     }
 
-    @ApiOperation(value = "Register for scheduled mail alerts")
-    @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_ACCEPTED, message = "The request of scheduled alert is registered and will be processed later"),
-        @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Rate alert payload contains invalid value"),
-        @ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Failed to accept the request of scheduled alert")
-    })
-    @PostMapping("alerts/rates")
-    public ResponseEntity<Void> registerForScheduledMailAlert(@RequestBody @Valid RateAlertDto rateAlertDto) {
-        employeeService.registerForScheduledMailAlert(rateAlertDto);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
-    }
-
     @ApiOperation(value = "Update employee's email by id")
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_NO_CONTENT, message = "Succeeded to update employee's email"),
@@ -119,6 +104,18 @@ public class EmployeeController {
     public ResponseEntity<Void> deleteEmployeeById(@PathVariable long id) {
         employeeService.deleteEmployeeById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @ApiOperation(value = "Register for scheduled mail alerts")
+    @ApiResponses(value = {
+        @ApiResponse(code = HttpURLConnection.HTTP_ACCEPTED, message = "The request of scheduled alert is registered and will be processed later"),
+        @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Rate alert payload contains invalid value"),
+        @ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Failed to accept the request of scheduled alert")
+    })
+    @PostMapping("alerts/rates")
+    public ResponseEntity<Void> registerForScheduledMailAlert(@RequestBody @Valid RateAlertDto rateAlertDto) {
+        employeeService.registerForScheduledMailAlert(rateAlertDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
 }

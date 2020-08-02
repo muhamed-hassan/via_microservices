@@ -1,15 +1,16 @@
 package com.practice.exceptions;
 
-import com.practice.configs.constants.ExceptionMessages;
+import static com.practice.configs.constants.ExceptionMessages.ENTITY_NOT_FOUND;
+
 
 public class EntityNotFoundException extends RuntimeException {
 
     public EntityNotFoundException() {
-        super(ExceptionMessages.ENTITY_NOT_FOUND);
+        super(ENTITY_NOT_FOUND);
     }
 
     public EntityNotFoundException(Throwable cause) {
-        super(ExceptionMessages.ENTITY_NOT_FOUND, cause);
+        super(ENTITY_NOT_FOUND, cause);
     }
 
 }

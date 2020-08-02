@@ -14,7 +14,6 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.practice.exceptions.DbConstraintViolationException;
 import com.practice.exceptions.EntityNotFoundException;
 import com.practice.exceptions.NoResultException;
 import com.practice.exceptions.ServiceNotAvailableException;
@@ -51,12 +50,6 @@ public class GlobalErrorHandler {
                                     .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(Map.of(ERROR_KEY, message));
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleDbConstraintViolationException(DbConstraintViolationException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of(ERROR_KEY, exception.getMessage()));
     }
 
     @ExceptionHandler

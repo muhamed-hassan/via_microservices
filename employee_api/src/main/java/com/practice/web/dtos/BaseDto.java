@@ -12,7 +12,6 @@ public class BaseDto {
     @ApiModelProperty(value = "Email", required = true, example = "test@test.com")
     @NotNull(message = Messages.EMAIL_IS_MISSING)
     @Email(message = Messages.EMAIL_IS_INVALID)
-//    @EmailRule
     private String email;
 
     public String getEmail() {

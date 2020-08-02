@@ -64,7 +64,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (criterionTokens != null && criterionTokens.length == 2) {
             String fieldName = criterionTokens[0].toLowerCase();
             String fieldValue = criterionTokens[1];
-            Specification<Employee> specification = null;
+            Specification<Employee> specification;
             if ("id".equals(fieldName)) {
                 specification = employeeSpecification.getEmployeeByIdSpec(fieldName, Long.parseLong(fieldValue));
             } else if ("email".equals(fieldName) || "username".equals(fieldName)) {
@@ -117,7 +117,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    // assuming employee can register only for one rate
     @Transactional
     @Override
     public void registerForScheduledMailAlert(RateAlertDto rateAlertDto) {
