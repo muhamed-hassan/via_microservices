@@ -4,13 +4,6 @@ server:
     whitelabel:
       enabled: false
 
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    instance-id: ${spring.application.name}:${random.int}
-
 spring:
   profiles:
     active: native

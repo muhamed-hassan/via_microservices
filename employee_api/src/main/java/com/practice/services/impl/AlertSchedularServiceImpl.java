@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.practice.integration.CurrencyConversionProvider;
 import com.practice.persistence.entities.RateAlert;
 import com.practice.persistence.repositories.RateAlertRepository;
 import com.practice.services.AlertSchedularService;
@@ -25,6 +26,9 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
 
     @Autowired
     private RateAlertRepository rateAlertRepository;
+
+    @Autowired
+    private CurrencyConversionProvider currencyConversionProvider;
 
     @Autowired
     private MailSender mailSender;
@@ -59,9 +63,7 @@ public class AlertSchedularServiceImpl implements AlertSchedularService {
         int cursor;
         for (cursor = 0; cursor < bases.size(); cursor++) {
             String base = bases.get(cursor);
-            //call feign client to get result from currency-conversion-api
-            //endpoint: v1/rates?currencyCode=value
-            Map<String, Double> latestRatesOfCurrentBase = null;//currencyConversionService.getLatestRatesByBase(base);
+            Map<String, Double> latestRatesOfCurrentBase = currencyConversionProvider.getLatestRatesByBase(base);
             if (latestRatesOfCurrentBase.isEmpty()) { // means that currency-conversion-api API is down
                 cursor--; // move the cursor back 1 step, to re-try the failed request
                 TimeUnit.HOURS.sleep(1); // sleep for 1 hour and try again

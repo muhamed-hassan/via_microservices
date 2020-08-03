@@ -1,6 +1,6 @@
 spring:
   application:
-    name: employee_api
+    name: employee-api
   cloud:
     config:
       username: internal-app

@@ -18,9 +18,9 @@ zuul:
   ignored-services:
     - '*'
   routes:
-    currency_conversion_api:
+    currency-conversion-api:
       path: /currency-conversion-api/**
-      serviceId: currency_conversion_api
-#    employee_api:
-#      path: /employee_api-api/**
-#      serviceId: employee_api_api
+      serviceId: currency-conversion-api
+    employee-api:
+      path: /employee-api/**
+      serviceId: employee-api

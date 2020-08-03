@@ -28,7 +28,7 @@ via:
     sender: no-reply@via.com
     subject: no-reply@via.com
   scheduled-email:
-    rate: '*/5 * * ? * *'
+    rate: '*/10 * * ? * *'
 
 feign:
   hystrix:
