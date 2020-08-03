@@ -17,7 +17,6 @@ import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -25,9 +24,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Spliterator;
-import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -39,7 +35,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +42,6 @@ import com.practice.exceptions.ServiceNotAvailableException;
 import com.practice.integration.CountryProvider;
 import com.practice.integration.RateProvider;
 import com.practice.services.impl.CurrencyConversionServiceImpl;
-import com.practice.transfomers.ResponseTransformer;
 
 import feign.FeignException;
 
@@ -65,9 +59,6 @@ public class CurrencyConversionServiceTest {
     @Spy
     private RateProvider rateProvider;
 
-    @Spy
-    private ResponseTransformer responseTransformer;
-
     @InjectMocks
     private CurrencyConversionServiceImpl conversionService;
 
@@ -76,13 +67,11 @@ public class CurrencyConversionServiceTest {
             throws Exception {
         String rawResponse = getMappingFromExternalApi(COUNTRIES_JSON);
         when(countryProvider.getCountriesWithTheirCurrencyCodes())
-            .thenReturn(ResponseEntity.ok(rawResponse));
+            .thenReturn(rawResponse);
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
         Map<String, String> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(COUNTRIES_JSON), Map.class);
-        doReturn(processedResponse)
-            .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
         Map<String, String> actualResult = conversionService.getCountriesWithTheirCurrencyCodes();
 
@@ -104,12 +93,10 @@ public class CurrencyConversionServiceTest {
             throws Exception {
         String rawResponse = getMappingFromExternalApi(responseFile);
         when(countryProvider.getCountriesWithTheirCurrencyCodes())
-            .thenReturn(ResponseEntity.ok(rawResponse));
+            .thenReturn(rawResponse);
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        doThrow(NullPointerException.class)
-            .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
         assertThrows(RuntimeException.class,
             () -> conversionService.getCountriesWithTheirCurrencyCodes());
@@ -131,13 +118,11 @@ public class CurrencyConversionServiceTest {
             throws Exception {
         String rawResponse = getMappingFromExternalApi(COUNTRY_OF_ISK_JSON);
         when(countryProvider.getCountriesByCurrencyCode(anyString()))
-            .thenReturn(ResponseEntity.ok(rawResponse));
+            .thenReturn(rawResponse);
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
         List<String> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(COUNTRY_OF_ISK_JSON), List.class);
-        doReturn(processedResponse)
-            .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Collector.class));
 
         List<String> actualResult = conversionService.getCountriesByCurrencyCode(ISK);
 
@@ -158,12 +143,10 @@ public class CurrencyConversionServiceTest {
             throws Exception {
         String rawResponse = getMappingFromExternalApi(COUNTRIES_WITH_INVALID_COUNTRY_NAME_JSON);
         when(countryProvider.getCountriesByCurrencyCode(anyString()))
-            .thenReturn(ResponseEntity.ok(rawResponse));
+            .thenReturn(rawResponse);
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
-        doThrow(NullPointerException.class)
-            .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
         assertThrows(RuntimeException.class,
             () -> conversionService.getCountriesByCurrencyCode(ISK));
@@ -173,14 +156,12 @@ public class CurrencyConversionServiceTest {
     public void testGetHighestAndLowestRatesByBase_WhenExternalApiAvailableAndItsResponseIsValid_ThenReturnProcessedData()
             throws Exception {
         String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
-        doReturn(ResponseEntity.ok(rawResponse))
+        doReturn(rawResponse)
             .when(rateProvider).getLatestRatesByBase(anyString());
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
         Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON), Map.class);
-        doReturn(processedResponse)
-            .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
         Map<String, Double> actualResult = conversionService.getHighestAndLowestRatesByBase(ISK);
 
@@ -201,7 +182,7 @@ public class CurrencyConversionServiceTest {
     public void testGetHighestAndLowestRatesByBase_WhenExternalApiAvailableAndItsResponseIsInvalid_ThenThrowRuntimeException()
             throws Exception {
         String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON_WITH_INVALID_RATES);
-        doReturn(ResponseEntity.ok(rawResponse))
+        doReturn(rawResponse)
             .when(rateProvider).getLatestRatesByBase(anyString());
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
@@ -216,13 +197,11 @@ public class CurrencyConversionServiceTest {
             throws Exception {
         String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         when(rateProvider.getLatestRatesByBase(anyString()))
-            .thenReturn(ResponseEntity.ok(rawResponse));
+            .thenReturn(rawResponse);
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);
         Map<String, Double> processedResponse = OBJECT_MAPPER.readValue(getMappingFromInternalApi(LATEST_RATES_OF_ISK_JSON), Map.class);
-        doReturn(processedResponse)
-            .when(responseTransformer).transform(any(Spliterator.class), any(Function.class), any(Function.class));
 
         Map<String, Double> actualResult = conversionService.getLatestRatesByBase(ISK);
 
@@ -243,7 +222,7 @@ public class CurrencyConversionServiceTest {
             throws Exception {
         String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON_WITH_INVALID_RATES);
         when(rateProvider.getLatestRatesByBase(anyString()))
-            .thenReturn(ResponseEntity.ok(rawResponse));
+            .thenReturn(rawResponse);
         JsonNode parsedResponse = OBJECT_MAPPER.readTree(rawResponse);
         when(mockedObjectMapper.readTree(anyString()))
             .thenReturn(parsedResponse);

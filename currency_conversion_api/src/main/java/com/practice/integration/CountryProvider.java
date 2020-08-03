@@ -1,7 +1,6 @@
 package com.practice.integration;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -11,9 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CountryProvider {
 
     @GetMapping
-    ResponseEntity<String> getCountriesWithTheirCurrencyCodes();
+    String getCountriesWithTheirCurrencyCodes();
 
     @GetMapping("currency/{currencyCode}")
-    ResponseEntity<String> getCountriesByCurrencyCode(@PathVariable String currencyCode);
+    String getCountriesByCurrencyCode(@PathVariable String currencyCode);
 
 }

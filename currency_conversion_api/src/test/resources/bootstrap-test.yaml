@@ -1,6 +1,6 @@
 spring:
   application:
-    name: currency_conversion_api
+    name: currency-conversion-api
   cloud:
     config:
       enabled: false

@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/employees
+    username: postgres
+    password: root
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: localhost
+    port: 25
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+# fake SMTP server configs for dev purposes [should be replaced with actual configs in prod mode]
+
+chunk-size: 50
+
+via:
+  default-email:
+    sender: no-reply@via.com
+    subject: no-reply@via.com
+  scheduled-email:
+    rate: '*/5 * * ? * *'
+
+feign:
+  hystrix:
+    enabled: true
+
+logging:
+  level:
+    root: info
+  pattern:
+    console: '%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n'

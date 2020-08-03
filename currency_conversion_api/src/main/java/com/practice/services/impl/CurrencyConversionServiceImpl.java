@@ -1,19 +1,19 @@
 package com.practice.services.impl;
 
-import static com.practice.configs.CachingConfig.ALL_COUNTRIES;
-import static com.practice.configs.CachingConfig.COUNTRIES_BY_CURRENCY_CODE;
 import static java.util.Spliterator.ORDERED;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.StreamSupport.stream;
 
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,7 +22,6 @@ import com.practice.exceptions.ServiceNotAvailableException;
 import com.practice.integration.CountryProvider;
 import com.practice.integration.RateProvider;
 import com.practice.services.CurrencyConversionService;
-import com.practice.transfomers.ResponseTransformer;
 
 import feign.FeignException;
 
@@ -38,41 +37,45 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Autowired
     private RateProvider rateProvider;
 
-    @Autowired
-    private ResponseTransformer currncyConversionTransformer;
-
-    @Cacheable(cacheNames = ALL_COUNTRIES)
+    @Cacheable(cacheNames = "CurrencyConversionService::getCountriesWithTheirCurrencyCodes()")
     @Override
     public Map<String, String> getCountriesWithTheirCurrencyCodes() {
         try {
-            ResponseEntity<String> response = countryProvider.getCountriesWithTheirCurrencyCodes();
-            String responseBody = response.getBody();
+            String responseBody = countryProvider.getCountriesWithTheirCurrencyCodes();
+            if (StringUtils.isBlank(responseBody)) {
+                throw new ServiceNotAvailableException();
+            }
             JsonNode countriesJsonNode = objectMapper.readTree(responseBody);
-            return currncyConversionTransformer.transform(countriesJsonNode.spliterator(),
-                                                            countryNode -> countryNode.get("name").asText(),
-                                                            countryNode -> currncyConversionTransformer.transform(
-                                                                countryNode.get("currencies").spliterator(),
-                                                                currencyNode -> currencyNode.get("code").asText(),
-                                                                joining(",")));
+            return stream(countriesJsonNode.spliterator(), false)
+                    .collect(toMap(countryNode -> countryNode.get("name").asText(),
+                                    countryNode -> stream(countryNode.get("currencies").spliterator(), false)
+                                                    .map(currencyNode -> currencyNode.get("code").asText())
+                                                    .collect( joining(","))));
         } catch (FeignException.ServiceUnavailable e) {
             throw new ServiceNotAvailableException();
+        } catch (ServiceNotAvailableException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Cacheable(cacheNames = COUNTRIES_BY_CURRENCY_CODE)
+    @Cacheable(cacheNames = "CurrencyConversionService::getCountriesByCurrencyCode()")
     @Override
     public List<String> getCountriesByCurrencyCode(String currencyCode) {
         try {
-            ResponseEntity<String> response = countryProvider.getCountriesByCurrencyCode(currencyCode);
-            String responseBody = response.getBody();
+            String responseBody = countryProvider.getCountriesByCurrencyCode(currencyCode);
+            if (StringUtils.isBlank(responseBody)) {
+                throw new ServiceNotAvailableException();
+            }
             JsonNode countriesJsonNode = objectMapper.readTree(responseBody);
-            return currncyConversionTransformer.transform(countriesJsonNode.spliterator(),
-                                                            countryNode -> countryNode.get("name").asText(),
-                                                            toList());
+            return stream(countriesJsonNode.spliterator(), false)
+                    .map(countryNode -> countryNode.get("name").asText())
+                    .collect(toList());
         } catch (FeignException.ServiceUnavailable e) {
             throw new ServiceNotAvailableException();
+        } catch (ServiceNotAvailableException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -93,14 +96,17 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Override
     public Map<String, Double> getLatestRatesByBase(String base) {
         try {
-            ResponseEntity<String> response = rateProvider.getLatestRatesByBase(base);
-            String responseBody = response.getBody();
+            String responseBody = rateProvider.getLatestRatesByBase(base);
+            if (StringUtils.isBlank(responseBody)) {
+                throw new ServiceNotAvailableException();
+            }
             JsonNode ratesNode = objectMapper.readTree(responseBody);
-            return currncyConversionTransformer.transform(spliteratorUnknownSize(ratesNode.get("rates").fields(), ORDERED),
-                                                            entry -> entry.getKey(),
-                                                            entry -> entry.getValue().asDouble());
+            return stream(spliteratorUnknownSize(ratesNode.get("rates").fields(), ORDERED), false)
+                        .collect(toMap(Map.Entry::getKey, entry -> entry.getValue().asDouble()));
         } catch (FeignException.ServiceUnavailable e) {
             throw new ServiceNotAvailableException();
+        } catch (ServiceNotAvailableException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
