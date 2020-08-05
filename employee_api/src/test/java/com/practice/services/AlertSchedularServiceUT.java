@@ -1,44 +1,34 @@
 package com.practice.services;
 
-//import static com.practice.configs.constants.Messages.EMAIL_ALREADY_EXIST;
-//import static com.practice.persistence.entities.RateAlertEntity.Constraints.RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.IContext;
 
-//import com.practice.exceptions.DbConstraintViolationException;
-//import com.practice.exceptions.handlers.EmployeeServiceErrorHandler;
-//import com.practice.persistence.entities.RateAlertEntity;
+import com.practice.integration.CurrencyConversionProvider;
+import com.practice.persistence.entities.RateAlert;
 import com.practice.persistence.repositories.RateAlertRepository;
-//import com.practice.services.helpers.TestTemplateEngine;
 import com.practice.services.impl.AlertSchedularServiceImpl;
-//import com.practice.services.impl.CurrencyConversionServiceImpl;
-import com.practice.transfomers.EntityTransformer;
-import com.practice.web.dtos.RateAlertDto;
 
 @ExtendWith(MockitoExtension.class)
 public class AlertSchedularServiceUT {
@@ -50,100 +40,99 @@ public class AlertSchedularServiceUT {
     private RateAlertRepository rateAlertRepository;
 
     @Mock
-    private EntityTransformer entityTransformer;
-
-    @Mock
     private MailSender mailSender;
 
-//    @Mock
-//    private TestTemplateEngine templateEngine;
+    @Mock
+    private ITemplateEngine templateEngine;
 
-//    @Mock
-//    private CurrencyConversionServiceImpl currencyConversionService;
-//
-//    @Mock
-//    private EmployeeServiceErrorHandler employeeServiceErrorHandler;
-
-    /*@Test
-    public void testRegisterForScheduledMailAlert_WhenEmailIsNew_ThenCreateIt() {
-        RateAlertEntity entity = mock(RateAlertEntity.class);
-        when(entityTransformer.toEntity(any(RateAlertDto.class), any(Class.class)))
-            .thenReturn(entity);
-        when(rateAlertRepository.save(any(RateAlertEntity.class)))
-            .thenReturn(entity);
-
-        alertSchedularService.registerForScheduledMailAlert(new RateAlertDto());
-
-        verify(entityTransformer, times(1)).toEntity(any(RateAlertDto.class), any(Class.class));
-        verify(rateAlertRepository, times(1)).save(any(RateAlertEntity.class));
-    }
+    @Mock
+    private CurrencyConversionProvider currencyConversionProvider;
 
     @Test
-    public void testRegisterForScheduledMailAlert_WhenEmailIsDuplicated_ThenThrowDbConstraintViolationException() {
-        RateAlertEntity entity = mock(RateAlertEntity.class);
-        when(entityTransformer.toEntity(any(RateAlertDto.class), any(Class.class)))
-            .thenReturn(entity);
-        DataIntegrityViolationException dataIntegrityViolationException = new DataIntegrityViolationException("..." + RATE_ALERT_UNIQUE_CONSTRAINT_EMAIL + "...");
-        doThrow(dataIntegrityViolationException)
-            .when(rateAlertRepository).save(entity);
-        DbConstraintViolationException dbConstraintViolationException = new DbConstraintViolationException(EMAIL_ALREADY_EXIST, dataIntegrityViolationException);
-        doThrow(dbConstraintViolationException)
-            .when(employeeServiceErrorHandler).handleDataIntegrityViolationException(dataIntegrityViolationException);
-
-        Executable executable = () -> alertSchedularService.registerForScheduledMailAlert(new RateAlertDto());
-        DbConstraintViolationException thrown = assertThrows(DbConstraintViolationException.class, executable);
-        assertTrue(thrown.getMessage().equals(EMAIL_ALREADY_EXIST));
-    }
-
-    @Test
-    public void testSendScheduledMailAlert_WhenTriggeringTheJob_ThenSendEmailsWithResult() throws Exception {
+    public void testSendScheduledMailAlert_WhenTriggeringTheJob_ThenSendEmailsWithResult()
+            throws InterruptedException {
         ReflectionTestUtils.setField(alertSchedularService, "defaultSender", "SENDER");
         ReflectionTestUtils.setField(alertSchedularService, "defaultSubject", "SUBJECT");
         ReflectionTestUtils.setField(alertSchedularService, "chunkSize", 50);
-        String base = "HUF";
-        Map<String, Double> response = Map.of("CAD", 0.0043762489,
-            "HKD", 0.0241258921,
-            "ISK", 0.4456180417);
+        String base = "ISK";
         List<String> bases = List.of(base);
-        when(rateAlertRepository.getBases())
+        when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(bases);
-        when(currencyConversionService.getLatestRatesByBase(anyString()))
-            .thenReturn(response);
+        when(currencyConversionProvider.getLatestRatesByBase(anyString()))
+            .thenReturn(getLatestRatesOfIsk());
         when(rateAlertRepository.count())
             .thenReturn(1L);
-        RateAlertEntity rateAlert = new RateAlertEntity();
-        rateAlert.setId(1L);
+        RateAlert rateAlert = new RateAlert();
+        rateAlert.setId(1);
         rateAlert.setBase(base);
         rateAlert.setEmail("email@example.com");
-        Page<RateAlertEntity> resultPage = mock(Page.class);
-        List<RateAlertEntity> result = List.of(rateAlert);
+        Page<RateAlert> resultPage = mock(Page.class);
+        List<RateAlert> result = List.of(rateAlert);
         when(rateAlertRepository.findAll(any(Pageable.class)))
             .thenReturn(resultPage);
         when(resultPage.toList())
             .thenReturn(result);
-        String processedTemplate = "xyz";
         when(templateEngine.process(anyString(), any(IContext.class)))
-            .thenReturn(processedTemplate);
+            .thenReturn("xyz");
         doNothing()
             .when(mailSender).send(any(SimpleMailMessage.class));
 
         alertSchedularService.sendScheduledMailAlert();
 
-        verify(rateAlertRepository, times(1)).getBases();
-        verify(rateAlertRepository, times(1)).count();
-        verify(rateAlertRepository, times(1)).findAll(any(Pageable.class));
-        verify(templateEngine, times(1)).process(anyString(), any(IContext.class));
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(rateAlertRepository).findAllDistinctBases();
+        verify(rateAlertRepository).count();
+        verify(rateAlertRepository).findAll(any(Pageable.class));
+        verify(templateEngine).process(anyString(), any(IContext.class));
+        verify(mailSender).send(any(SimpleMailMessage.class));
+    }
+
+    private Map<String, Double> getLatestRatesOfIsk() {
+        Map<String, Double> response = new HashMap<>();
+        response.put("CAD", 0.009858125);
+        response.put("HKD", 0.056986875);
+        response.put("ISK", 1.0);
+        response.put("PHP", 0.3610875);
+        response.put("DKK", 0.04653875);
+        response.put("HUF", 2.1545625);
+        response.put("CZK", 0.16388125);
+        response.put("GBP", 0.0056459375);
+        response.put("RON", 0.03022375);
+        response.put("SEK", 0.064390625);
+        response.put("IDR", 107.980625);
+        response.put("INR", 0.552378125);
+        response.put("BRL", 0.039214375);
+        response.put("RUB", 0.542046875);
+        response.put("HRK", 0.046676875);
+        response.put("JPY", 0.779875);
+        response.put("THB", 0.2288);
+        response.put("CHF", 0.006725625);
+        response.put("EUR", 0.00625);
+        response.put("MYR", 0.03103375);
+        response.put("BGN", 0.01222375);
+        response.put("TRY", 0.05124375);
+        response.put("CNY", 0.051348125);
+        response.put("NOK", 0.06723);
+        response.put("NZD", 0.011129375);
+        response.put("ZAR", 0.128049375);
+        response.put("USD", 0.007353125);
+        response.put("MXN", 0.167125625);
+        response.put("SGD", 0.010121875);
+        response.put("AUD", 0.010309375);
+        response.put("ILS", 0.0251825);
+        response.put("KRW", 8.7905625);
+        response.put("PLN", 0.027534375);
+        return response;
     }
 
     @Test
-    public void testSendScheduledMailAlert_WhenNoBasesExistInDb_ThenDoNothing() throws Exception {
-        when(rateAlertRepository.getBases())
+    public void testSendScheduledMailAlert_WhenNoBasesExistInDb_ThenDoNothing()
+            throws InterruptedException {
+        when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(List.of());
 
         alertSchedularService.sendScheduledMailAlert();
 
-        verify(rateAlertRepository, times(1)).getBases();
-    }*/
+        verify(rateAlertRepository, times(1)).findAllDistinctBases();
+    }
 
 }
