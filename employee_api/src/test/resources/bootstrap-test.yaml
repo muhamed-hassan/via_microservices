@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: currency-conversion-api
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+    service-registry:
+      auto-registration:
+        enabled: true
+
