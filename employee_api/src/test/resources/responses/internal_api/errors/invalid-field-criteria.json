@@ -1,0 +1,3 @@
+{
+  "error": "invalid criteria allowed criteria are id, email and username in the form of fieldName:validValue"
+}

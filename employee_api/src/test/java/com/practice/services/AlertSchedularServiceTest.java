@@ -31,7 +31,7 @@ import com.practice.persistence.repositories.RateAlertRepository;
 import com.practice.services.impl.AlertSchedularServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
-public class AlertSchedularServiceUT {
+public class AlertSchedularServiceTest {
 
     @InjectMocks
     private AlertSchedularServiceImpl alertSchedularService;

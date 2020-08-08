@@ -1,0 +1,1 @@
+delete from rate_alert;

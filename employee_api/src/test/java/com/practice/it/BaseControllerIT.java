@@ -29,8 +29,8 @@ import com.practice.it.configs.WireMockServerConfig;
 import com.practice.it.helpers.models.RequestToMockServer;
 import com.practice.it.helpers.models.ResponseFromMockServer;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+//@SpringBootTest
+//@AutoConfigureMockMvc
 public class BaseControllerIT {
 
     protected static final String EXTERNAL_API_MAPPINGS_DIR = "external/";
@@ -40,10 +40,10 @@ public class BaseControllerIT {
 
     private static final String BASE_MAPPINGS_DIR = "__files/";
 
-    @Autowired
+//    @Autowired
     private WireMockServerConfig wireMockServerConfig;
 
-    @Autowired
+//    @Autowired
     private MockMvc mockMvc;
 
     protected static ObjectMapper getObjectMapper() {

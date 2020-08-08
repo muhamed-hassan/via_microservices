@@ -98,7 +98,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             Employee employee = employeeRepository.getOne(id);
             employee.setEmail(email);
-            employeeRepository.save(employee);
+            employeeRepository.saveAndFlush(employee);
         } catch (DataIntegrityViolationException e) {
             throw serviceErrorHandler.wrapDataIntegrityViolationException(e, Employee.class);
         } catch (javax.persistence.EntityNotFoundException e) {

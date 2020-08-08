@@ -47,7 +47,7 @@ import com.practice.web.dtos.RateAlertDto;
 import com.practice.web.dtos.SavedEmployeeDto;
 
 @ExtendWith(MockitoExtension.class)
-public class EmployeeServiceUT {
+public class EmployeeServiceTest {
 
     @Mock
     private static EmployeeSpecification employeeSpecification;

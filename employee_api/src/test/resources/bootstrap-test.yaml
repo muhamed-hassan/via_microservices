@@ -1,6 +1,6 @@
 spring:
   application:
-    name: currency-conversion-api
+    name: employee-api
   cloud:
     config:
       enabled: false
@@ -9,4 +9,8 @@ spring:
     service-registry:
       auto-registration:
         enabled: true
+    loadbalancer:
+      ribbon:
+        enabled: false
+
 

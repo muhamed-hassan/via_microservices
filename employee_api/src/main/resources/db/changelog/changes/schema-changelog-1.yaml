@@ -10,6 +10,8 @@ databaseChangeLog:
                     primaryKey: true
                   name: id
                   type: integer
+                  autoIncrement: true
+                  startWith: 1
               - column:
                   constraints:
                     nullable: false
@@ -43,6 +45,7 @@ databaseChangeLog:
                     nullable: false
                   name: version
                   type: integer
+                  defaultValue: 0
             schemaName: public
             tableName: employee
         - createIndex:
@@ -53,11 +56,6 @@ databaseChangeLog:
                   name: ((lower(email)))
             schemaName: public
             tableName:  employee
-        - addAutoIncrement:
-            columnName: id
-            incrementBy: 1
-            schemaName: public
-            tableName: employee
         - createTable:
             columns:
               - column:
@@ -65,6 +63,8 @@ databaseChangeLog:
                     primaryKey: true
                   name: id
                   type: integer
+                  autoIncrement: true
+                  startWith: 1
               - column:
                   constraints:
                     nullable: false
@@ -78,8 +78,4 @@ databaseChangeLog:
                   type: VARCHAR(250)
             schemaName: public
             tableName: rate_alert
-        - addAutoIncrement:
-            columnName: id
-            incrementBy: 1
-            schemaName: public
-            tableName: rate_alert
+

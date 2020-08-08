@@ -89,7 +89,7 @@ public class EmployeeController {
         @ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Failed to update employee's email")
     })
     @PatchMapping("{id}")
-    public ResponseEntity<Void> updateEmployeeEmailById(@PathVariable long id, @RequestBody @Valid  EmailDto emailDto) {
+    public ResponseEntity<Void> updateEmployeeEmailById(@PathVariable long id, @RequestBody @Valid EmailDto emailDto) {
         employeeService.updateEmployeeEmailById(id, emailDto.getEmail());
         return ResponseEntity.noContent().build();
     }

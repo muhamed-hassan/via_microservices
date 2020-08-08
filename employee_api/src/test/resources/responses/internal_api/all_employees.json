@@ -1,0 +1,42 @@
+[
+  {
+    "email": "wanya@test.com",
+    "name": "Wanya",
+    "username": "wanya_costrau",
+    "phoneNumber": "4215551",
+    "age": 25,
+    "id": 1
+  },
+  {
+    "email": "splica@test.com",
+    "name": "Splica",
+    "username": "splica_weseloh",
+    "phoneNumber": "4215552",
+    "age": 26,
+    "id": 2
+  },
+  {
+    "email": "melanie@test.com",
+    "name": "Melanie",
+    "username": "melanie_armin",
+    "phoneNumber": "4215553",
+    "age": 27,
+    "id": 3
+  },
+  {
+    "email": "dmitry@test.com",
+    "name": "Dmitry",
+    "username": "dmitry_kajevic",
+    "phoneNumber": "4215554",
+    "age": 28,
+    "id": 4
+  },
+  {
+    "email": "irina@test.com",
+    "name": "Irina",
+    "username": "irina_eggler",
+    "phoneNumber": "4215555",
+    "age": 29,
+    "id": 5
+  }
+]

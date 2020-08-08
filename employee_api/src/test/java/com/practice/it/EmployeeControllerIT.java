@@ -1,189 +1,394 @@
 package com.practice.it;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-//import static com.practice.helpers.IDs.VALID_AGE;
-//import static com.practice.helpers.IDs.INVALID_AGE;
-//import static com.practice.helpers.IDs.EXISTING_ID;
-//import static com.practice.helpers.IDs.NON_EXISTING_ID;
+import static com.practice.utils.HttpClient.doRequest;
+import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.MessageFormat;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
 
-import com.practice.web.dtos.EmailDto;
-//import com.practice.web.dtos.EmployeeDto;
-import com.practice.web.dtos.RateAlertDto;
+import com.practice.it.helpers.models.HttpRequest;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@TestPropertySource(properties = "via.scheduling.enable=false")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
 public class EmployeeControllerIT /*extends BaseControllerIT*/ {
 
-//    private static final String EXPECTED_EMPLOYEES_FROM_CURRENT_API = EXPECTED_FROM_CURRENT_API_MAPPINGS_DIR + "employees.json";
+    private static final String UPDATE_SCRIPTS_DIR = "db/scripts/";
 
-    /*@Test
-    public void testGetEmployees() throws Exception {
-        String expectedResponse = readJsonFrom(EXPECTED_EMPLOYEES_FROM_CURRENT_API);
+    private static PostgreSQLContainer postgreSQLContainer;
 
-        ResultActions resultActions = getMockMvc().perform(get("/api/v1/employees"));
+    @BeforeAll
+    public static void initTestDB() {
+        if (postgreSQLContainer == null) {
+            postgreSQLContainer = new PostgreSQLContainer("postgres:12")
+                .withDatabaseName("integration-tests-db")
+                .withUsername("username")
+                .withPassword("password");
+            postgreSQLContainer.start();
+            System.setProperty("DB_URL", postgreSQLContainer.getJdbcUrl());
+            System.setProperty("DB_USER", postgreSQLContainer.getUsername());
+            System.setProperty("DB_PASSWORD", postgreSQLContainer.getPassword());
+        }
+    }
 
-        resultActions.andExpect(status().isOk())
-            			.andExpect(content().json(expectedResponse, false));
+    public void updateTestDB(String scriptName)
+        throws SQLException, URISyntaxException, IOException {
+        String script = Files.readAllLines(Paths.get(ClassLoader.getSystemResource(UPDATE_SCRIPTS_DIR + scriptName).toURI()))
+            .stream()
+            .collect(Collectors.joining());
+        Connection connection = postgreSQLContainer.createConnection("");
+        Statement statement = connection.createStatement();
+        statement.execute(script);
+    }
+
+    @Test
+    public void testGetEmployees_WhenDataFound_ThenReturn200WithData() throws Exception {
+        updateTestDB("all_employees_data.sql");
+        String expectedResponse = getMappingFromInternalApi("all_employees.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.GET), String.class);
+
+        assertEquals(HttpStatus.OK, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        updateTestDB("reset_employees_table.sql");
+    }
+
+    @Test
+    public void testGetEmployees_WhenDataNotFound_ThenReturn404WithErrorMsg() throws Exception {
+        String expectedResponse = getMappingFromInternalApi("no-data-found.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.GET), String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteria")
-    public void testGetEmployeeByFieldCriteria(final String pathVariable, final ResultMatcher expectedHttpStatusMatcher, final ResultMatcher expectedContentMatcher) throws Exception {
-        ResultActions resultActions = getMockMvc().perform(get(MessageFormat.format("/api/v1/employees/criteria/{0}", pathVariable)));
+    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataFound")
+    public void testGetEmployeeByFieldCriteria_WhenDataFound_ThenReturn200WithData
+        (String pathVariable) throws Exception {
+        updateTestDB("employee_with_criteria.sql");
+        String expectedResponse = getMappingFromInternalApi("employee-with-criteria.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
 
-        resultActions.andExpect(expectedHttpStatusMatcher)
-            			.andExpect(expectedContentMatcher);
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/criteria/{0}", pathVariable),
+            headers, HttpMethod.GET), String.class);
+
+        assertEquals(HttpStatus.OK, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        updateTestDB("reset_employees_table.sql");
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteria() {
-        StringBuilder expectedValidResponse = new StringBuilder()
-            .append("{")
-            .append("\"id\": 1,")
-            .append("\"name\": \"Charlotte\",")
-            .append("\"username\": \"Charlotte_Jack\",")
-            .append("\"email\": \"Charlotte_Jack@test.com\",")
-            .append("\"phone_number\": \"061123456\",")
-            .append("\"age\": 25")
-            .append("}");
+    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataFound() {
         return Stream.of(
-            Arguments.of("id:1", status().isOk(), content().json(expectedValidResponse.toString(), true)),
-            Arguments.of("email:Charlotte_Jack@test.com", status().isOk(), content().json(expectedValidResponse.toString(), true)),
-            Arguments.of("username:Charlotte_Jack", status().isOk(), content().json(expectedValidResponse.toString(), true)),
-            Arguments.of("id1", status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of("id=1", status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of("emailCharlotte_Jack@test.com", status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of("email=Charlotte_Jack@test.com", status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of("usernameCharlotte_Jack", status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of("username=Charlotte_Jack", status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of("phone_number:061123456", status().isNotImplemented(), content().string(containsString("error"))),
-            Arguments.of("age:35", status().isNotImplemented(), content().string(containsString("error")))
+            Arguments.of("id:1"),
+            Arguments.of("email:wanya@test.com"),
+            Arguments.of("username:wanya_costrau")
         );
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestCreateEmployee")
-    public void testCreateEmployee(final EmployeeDto employeeDto, final ResultMatcher expectedHttpStatusMatcher, final ResultMatcher expectedContentMatcher) throws Exception {
-        ResultActions resultActions = getMockMvc().perform(post("/api/v1/employees")
-													.content(getObjectMapper().writeValueAsString(employeeDto))
-													.contentType(MediaType.APPLICATION_JSON)
-													.characterEncoding(StandardCharsets.UTF_8.name()));
+    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataNotFound")
+    public void testGetEmployeeByFieldCriteria_WhenDataNotFound_ThenReturn404WithErrorMsg
+        (String pathVariable) throws Exception {
+        String expectedResponse = getMappingFromInternalApi("entity-not-found.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
 
-        resultActions.andExpect(expectedHttpStatusMatcher)
-            			.andExpect(expectedContentMatcher);
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/criteria/{0}", pathVariable),
+            headers, HttpMethod.GET), String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
-    private static Stream<Arguments> provideArgumentsForTestCreateEmployee() {
-        EmployeeDto employeeDtoWithValidData = EmployeeDto.getBuilder().name("Ronan").username("Ronan_Farhan").email("Ronan_Farhan@test.com").phoneNumber("066123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithAlreadyExistedUsername = EmployeeDto.getBuilder().name("Charlotte").username("Charlotte_Jack").email("Charlotte_Jacky@test.com").phoneNumber("0670123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithAlreadyExistedEmail = EmployeeDto.getBuilder().name("Charlotte").username("Charlotte_Ronan").email("Charlotte_Jack@test.com").phoneNumber("0660123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithAlreadyExistedPhoneNumber = EmployeeDto.getBuilder().name("Charlotte").username("Charlotte_Farhan").email("Charlotte_Farhan@test.com").phoneNumber("061123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithInvalidName = EmployeeDto.getBuilder().name("$$$$$$$$$$$$$").username("Ronan_Farhan").email("Ronan_Farhan@test.com").phoneNumber("066123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithInvalidUsername = EmployeeDto.getBuilder().name("Ronan").username("$$$$$$$$$$$$$").email("Ronan_Farhan@test.com").phoneNumber("066123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithInvalidEmail = EmployeeDto.getBuilder().name("Ronan").username("Ronan_Farhan").email("Ronan_Farhantest.com").phoneNumber("066123456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithInvalidPhoneNumber = EmployeeDto.getBuilder().name("Ronan").username("Ronan_Farhan").email("Ronan_Farhan@test.com").phoneNumber("0661dddd23456").age(VALID_AGE).build();
-        EmployeeDto employeeDtoWithInvalidAge = EmployeeDto.getBuilder().name("Ronan").username("Ronan_Farhan").email("Ronan_Farhan@test.com").phoneNumber("066123456").age(
-            INVALID_AGE).build();
-
+    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataNotFound() {
         return Stream.of(
-            Arguments.of(employeeDtoWithValidData, status().isCreated(), header().exists("Location")),
-            Arguments.of(employeeDtoWithAlreadyExistedUsername, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithAlreadyExistedEmail, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithAlreadyExistedPhoneNumber, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithInvalidName, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithInvalidUsername, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithInvalidEmail, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithInvalidPhoneNumber, status().isBadRequest(), content().string(containsString("error"))),
-            Arguments.of(employeeDtoWithInvalidAge, status().isBadRequest(), content().string(containsString("error")))
+            Arguments.of("id:2"),
+            Arguments.of("email:anna@test.com"),
+            Arguments.of("username:anna_nyporka")
         );
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForUpdateEmployeeEmailById")
-    public void testUpdateEmployeeEmailById(final EmailDto emailDto, final long employeeId, final ResultMatcher expectedOutcomeMatcher) throws Exception {
-        ResultActions resultActions = getMockMvc().perform(patch(MessageFormat.format("/api/v1/employees/{0}", employeeId))
-													.content(getObjectMapper().writeValueAsString(emailDto))
-													.contentType(MediaType.APPLICATION_JSON)
-													.characterEncoding(StandardCharsets.UTF_8.name()));
+    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenSendingInvalidCriteria")
+    public void testGetEmployeeByFieldCriteria_WhenSendingInvalidCriteria_ThenReturn400WithErrorMsg
+        (String pathVariable) throws Exception {
+        String expectedResponse = getMappingFromInternalApi("invalid-field-criteria.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
 
-        resultActions.andExpect(expectedOutcomeMatcher);
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/criteria/{0}", pathVariable),
+            headers, HttpMethod.GET), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
     }
 
-    private static Stream<Arguments> provideArgumentsForUpdateEmployeeEmailById() {
-        EmailDto newEmail = new EmailDto("NEW_Charlotte_Jack@test.com");
-        EmailDto emailAlreadyExist = new EmailDto("Charlotte_Jack@test.com");
-        EmailDto invalidEmail = new EmailDto("NEW_Charlotte_Jacktest.com");
+    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenSendingInvalidCriteria() {
+        return Stream.of(
+            Arguments.of("id=2"),
+            Arguments.of("id2"),
+            Arguments.of("idx:2"),
+            Arguments.of("email=anna@test.com"),
+            Arguments.of("emailanna@test.com"),
+            Arguments.of("emailx:anna@test.com"),
+            Arguments.of("username=anna_nyporka"),
+            Arguments.of("usernameanna_nyporka"),
+            Arguments.of("usernamex:anna_nyporka")
+        );
+    }
+
+    @Test
+    public void testCreateEmployee_WhenPayloadIsValid_ThenSaveItAndReturn201WithItsLocation
+        () {
+        String requestBody = getMappingFromInternalApi("new-employee.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<Void> response = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.POST, requestBody), Void.class);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getHeaders().getLocation());
+        assertTrue(response.getHeaders().getLocation().getPath().matches("^\\/v1\\/employees\\/[1-9][0-9]*$"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideArgumentsForTestCreateEmployeeWhenPayloadIsInvalid")
+    public void testCreateEmployee_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg
+        (String requestBodyFile, String errorMsgFile) throws Exception {
+        String requestBody = getMappingFromInternalApi(requestBodyFile);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.POST, requestBody), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi(errorMsgFile), actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    private static Stream<Arguments> provideArgumentsForTestCreateEmployeeWhenPayloadIsInvalid() {
 
         return Stream.of(
-            Arguments.of(newEmail, EXISTING_ID, status().isNoContent()),
-            Arguments.of(emailAlreadyExist, EXISTING_ID, status().isBadRequest()),
-            Arguments.of(newEmail, NON_EXISTING_ID, status().isBadRequest()),
-            Arguments.of(invalidEmail, EXISTING_ID, status().isBadRequest())
+            Arguments.of("new-employee-with-invalid-email.json", "invalid-email.json"),
+            Arguments.of("new-employee-with-invalid-max-age.json", "invalid-max-age.json"),
+            Arguments.of("new-employee-with-invalid-min-age.json", "invalid-min-age.json"),
+            Arguments.of("new-employee-with-invalid-name.json", "invalid-name.json"),
+            Arguments.of("new-employee-with-invalid-phone-number.json", "invalid-phone-number.json"),
+            Arguments.of("new-employee-with-invalid-username.json", "invalid-username.json")
         );
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestDeleteEmployeeById")
-    public void testDeleteEmployeeById(final long employeeId, final ResultMatcher expectedOutcomeMatcher) throws Exception {
-        ResultActions resultActions = getMockMvc().perform(delete(MessageFormat.format("/api/v1/employees/{0}", employeeId)));
+    @MethodSource("provideArgumentsForTestCreateEmployeeWhenDbConstraintIsViolated")
+    public void testCreateEmployee_WhenDbConstraintIsViolated_ThenReturn400WithErrorMsg
+        (String requestBodyFile, String errorMsgFile) throws Exception {
+        updateTestDB("new_employee.sql");
+        String requestBody = getMappingFromInternalApi(requestBodyFile);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
 
-        resultActions.andExpect(expectedOutcomeMatcher);
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.POST, requestBody), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi(errorMsgFile), actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        updateTestDB("reset_employees_table.sql");
     }
 
-    private static Stream<Arguments> provideArgumentsForTestDeleteEmployeeById() {
+    private static Stream<Arguments> provideArgumentsForTestCreateEmployeeWhenDbConstraintIsViolated() {
+
         return Stream.of(
-            Arguments.of(EXISTING_ID, status().isNoContent()),
-            Arguments.of(NON_EXISTING_ID, status().isNotFound())
+            Arguments.of("new-employee-with-duplicated-email.json", "duplicated-email.json"),
+            Arguments.of("new-employee-with-duplicated-phone-number.json", "duplicated-phone-number.json"),
+            Arguments.of("new-employee-with-duplicated-username.json", "duplicated-username.json")
         );
+    }
+
+    @Test
+    public void testUpdateEmployeeEmailById_WhenEmailIsValidAndNotDuplicated_ThenUpdateAndReturn204() throws SQLException, IOException, URISyntaxException {
+        updateTestDB("new_employee.sql");
+        String requestBody = getMappingFromInternalApi("new-email.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<Void> response = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1), headers, HttpMethod.PATCH, requestBody),
+            Void.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        updateTestDB("reset_employees_table.sql");
+    }
+
+    @Test
+    public void testUpdateEmployeeEmailById_WhenEmailIsValidAndDuplicated_ThenReturn400WithErrorMsg()
+        throws SQLException, IOException, URISyntaxException, JSONException {
+        updateTestDB("all_employees_data.sql");
+        String requestBody = getMappingFromInternalApi("new-email-with-duplicated-value.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(
+            HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1), headers, HttpMethod.PATCH, requestBody), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi("duplicated-email.json"), actualResponse.getBody(),
+            JSONCompareMode.NON_EXTENSIBLE);
+        updateTestDB("reset_employees_table.sql");
+    }
+
+    @Test
+    public void testUpdateEmployeeEmailById_WhenEmailIsValidAndEmployeeNotFound_ThenReturn404WithErrorMsg()
+        throws SQLException, IOException, URISyntaxException, JSONException {
+        String requestBody = getMappingFromInternalApi("new-email.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(
+            HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 404), headers, HttpMethod.PATCH, requestBody), String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi("entity-not-found.json"), actualResponse.getBody(),
+            JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testUpdateEmployeeEmailById_WhenEmailIsInvalid_ThenReturn400WithErrorMsg() throws JSONException {
+        String requestBody = getMappingFromInternalApi("new-email-with-invalid-value.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(
+            HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1), headers, HttpMethod.PATCH, requestBody), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi("invalid-email.json"), actualResponse.getBody(),
+            JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testDeleteEmployeeById_WhenDataFound_ThenDeleteAndReturn204() throws SQLException, IOException, URISyntaxException {
+        updateTestDB("all_employees_data.sql");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1),
+            headers, HttpMethod.DELETE), String.class);
+
+        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getStatusCode());
+        updateTestDB("reset_employees_table.sql");
+    }
+
+    @Test
+    public void testDeleteEmployeeById_WhenDataNotFound_ThenReturn404WithErrorMsg() throws JSONException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 404),
+            headers, HttpMethod.DELETE), String.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi("entity-not-found.json"), actualResponse.getBody(),
+            JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Test
+    public void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailNotDuplicated_ThenSaveAndReturn202()
+        throws SQLException, IOException, URISyntaxException {
+        String requestBody = getMappingFromInternalApi("new-rate-alert.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees/alerts/rates",
+            headers, HttpMethod.POST, requestBody), String.class);
+
+        assertEquals(HttpStatus.ACCEPTED, actualResponse.getStatusCode());
+        updateTestDB("reset_rate_alert_table.sql");
+    }
+
+    @Test
+    public void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailDuplicated_ThenReturn400WithErrorMsg()
+        throws SQLException, IOException, URISyntaxException, JSONException {
+        updateTestDB("new_rate_alert.sql");
+        String requestBody = getMappingFromInternalApi("new-rate-alert.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees/alerts/rates",
+            headers, HttpMethod.POST, requestBody), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi("duplicated-email.json"), actualResponse.getBody(),
+            JSONCompareMode.NON_EXTENSIBLE);
+        updateTestDB("reset_rate_alert_table.sql");
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestRegisterForScheduledMailAlert")
-    public void testRegisterForScheduledMailAlert(final RateAlertDto rateAlertDto, final ResultMatcher expectedOutcomeMatcher) throws Exception {
-        ResultActions resultActions = getMockMvc().perform(post("/api/v1/employees/alerts/rates")
-													.content(getObjectMapper().writeValueAsString(rateAlertDto))
-													.contentType(MediaType.APPLICATION_JSON)
-													.characterEncoding(StandardCharsets.UTF_8.name()));
+    @MethodSource("provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid")
+    public void testRegisterForScheduledMailAlert_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(
+        String requestBodyFile, String errorMsgFile
+    )
+        throws JSONException {
+        String requestBody = getMappingFromInternalApi(requestBodyFile);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
 
-        resultActions.andExpect(expectedOutcomeMatcher);
+        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees/alerts/rates",
+            headers, HttpMethod.POST, requestBody), String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
+        JSONAssert.assertEquals(getMappingFromInternalApi(errorMsgFile), actualResponse.getBody(),
+            JSONCompareMode.NON_EXTENSIBLE);
     }
 
-    private static Stream<Arguments> provideArgumentsForTestRegisterForScheduledMailAlert() {
-        RateAlertDto rateAlertDtoWithNewEmail = new RateAlertDto();
-        rateAlertDtoWithNewEmail.setEmail("Harrison_Carlos@test.com");
-        rateAlertDtoWithNewEmail.setBase("HUF");
-
-        RateAlertDto rateAlertDtoWithEmailAlreadyExist = new RateAlertDto();
-        rateAlertDtoWithEmailAlreadyExist.setEmail("Charlotte_Jack@test.com");
-        rateAlertDtoWithEmailAlreadyExist.setBase("HUF");
-
-        RateAlertDto rateAlertDtoWithInvalidEmail = new RateAlertDto();
-        rateAlertDtoWithInvalidEmail.setEmail("Harrison_Carlostest.com");
-        rateAlertDtoWithInvalidEmail.setBase("HUF");
+    private static Stream<Arguments> provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid() {
 
         return Stream.of(
-            Arguments.of(rateAlertDtoWithNewEmail, status().isAccepted()),
-            Arguments.of(rateAlertDtoWithEmailAlreadyExist, status().isBadRequest()),
-            Arguments.of(rateAlertDtoWithInvalidEmail, status().isBadRequest())
+            Arguments.of("new-rate-alert-with-invalid-email.json", "invalid-email.json"),
+            Arguments.of("new-rate-alert-with-invalid-base.json", "invalid-currency-code.json")
         );
-    }*/
+    }
 
 }
