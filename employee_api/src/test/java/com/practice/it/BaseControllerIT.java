@@ -58,18 +58,18 @@ public class BaseControllerIT {
         return objectMapper.readTree(content).toString();
     }
 
-    protected void prepareStubServer(final RequestToMockServer request, final ResponseFromMockServer response) {
-        MappingBuilder mappingBuilder = WireMock.get(urlEqualTo(request.getRequestPath()));
-        ResponseDefinitionBuilder responseDefinitionBuilder = aResponse().withBody(response.getResponseBody()).withStatus(response.getHttpStatus());
-        if (response.getHeaders() != null) {
-            List<HttpHeader> responseHeaders = new LinkedList<>();
-            for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-                responseHeaders.add(new HttpHeader(entry.getKey(), entry.getValue()));
-            }
-            responseDefinitionBuilder.withHeaders(new HttpHeaders(responseHeaders));
-        }
-        wireMockServerConfig.wireMockServer().stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
-    }
+//    protected void prepareStubServer(final RequestToMockServer request, final ResponseFromMockServer response) {
+//        MappingBuilder mappingBuilder = WireMock.get(urlEqualTo(request.getRequestPath()));
+//        ResponseDefinitionBuilder responseDefinitionBuilder = aResponse().withBody(response.getResponseBody()).withStatus(response.getHttpStatus());
+//        if (response.getHeaders() != null) {
+//            List<HttpHeader> responseHeaders = new LinkedList<>();
+//            for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
+//                responseHeaders.add(new HttpHeader(entry.getKey(), entry.getValue()));
+//            }
+//            responseDefinitionBuilder.withHeaders(new HttpHeaders(responseHeaders));
+//        }
+//        wireMockServerConfig.wireMockServer().stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
+//    }
 
     protected MockHttpServletResponse fireRequest(final RequestBuilder requestBuilder, final boolean encodeResponseWithUTF8) throws Exception {
         MockHttpServletResponse response = mockMvc.perform(requestBuilder).andReturn().getResponse();

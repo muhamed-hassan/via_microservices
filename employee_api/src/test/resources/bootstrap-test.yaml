@@ -4,13 +4,17 @@ spring:
   cloud:
     config:
       enabled: false
-    discovery:
-      enabled: false
-    service-registry:
-      auto-registration:
-        enabled: true
-    loadbalancer:
-      ribbon:
-        enabled: false
+#    discovery:
+#      enabled: false
+#    service-registry:
+#      auto-registration:
+#        enabled: false
+#    loadbalancer:
+#      ribbon:
+#        enabled: false
+
+#currency-conversion-api:
+#  ribbon:
+#    listOfServers: http:\\localhost:5599
 
 

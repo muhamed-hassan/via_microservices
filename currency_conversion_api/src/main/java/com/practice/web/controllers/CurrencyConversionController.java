@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +37,7 @@ public class CurrencyConversionController {
                         response = Map.class),
         @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External countries with their currencies endpoint not available")
     })
-    @GetMapping("countries")
+    @GetMapping(path = "countries", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, String> getCountriesWithTheirCurrencyCodes() {
         return currencyConversionService.getCountriesWithTheirCurrencyCodes();
     }
@@ -47,7 +48,7 @@ public class CurrencyConversionController {
                         response = String.class),
         @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External countries by currency code endpoint not available")
     })
-    @GetMapping("countries/{currencyCode}")
+    @GetMapping(path = "countries/{currencyCode}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getCountriesByCurrencyCode(@PathVariable @CurrencyCodeRule String currencyCode) {
         return currencyConversionService.getCountriesByCurrencyCode(currencyCode);
     }
@@ -58,7 +59,7 @@ public class CurrencyConversionController {
                         response = Map.class),
         @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "Dependency on the external latest rates by base endpoint not available")
     })
-    @GetMapping("rates/statistics")
+    @GetMapping(path = "rates/statistics", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Double> getHighestAndLowestRatesByBase(@RequestParam @CurrencyCodeRule String currencyCode) {
         return currencyConversionService.getHighestAndLowestRatesByBase(currencyCode);
     }
@@ -69,7 +70,7 @@ public class CurrencyConversionController {
                         response = Map.class),
         @ApiResponse(code = HttpURLConnection.HTTP_UNAVAILABLE, message = "External latest rates by base endpoint not available")
     })
-    @GetMapping("rates")
+    @GetMapping(path = "rates", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Double> getLatestRatesByBase(@RequestParam @CurrencyCodeRule String currencyCode) {
         return currencyConversionService.getLatestRatesByBase(currencyCode);
     }

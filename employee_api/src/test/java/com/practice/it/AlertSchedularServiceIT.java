@@ -2,6 +2,15 @@ package com.practice.it;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static com.practice.it.helpers.ExternalApiResponseHeaders.COUNTRIES_API;
+import static com.practice.it.helpers.ExternalEndpoints.ALL_COUNTRIES_EXTERNAL;
+import static com.practice.utils.Mappings.COUNTRIES_JSON;
+import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
+import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.HttpStatus.OK;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -13,17 +22,24 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -33,17 +49,30 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.practice.configs.SchedularConfig;
+import com.practice.it.configs.WireMockServerConfig;
 import com.practice.it.helpers.models.RequestToMockServer;
 import com.practice.it.helpers.models.ResponseFromMockServer;
+import com.practice.services.impl.AlertSchedularServiceImpl;
 
-@TestPropertySource(properties = "via.scheduling.enable=false")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+
+//@SpringJUnitConfig(SchedularConfig.class)
+//@TestPropertySource(properties = "via.scheduling.enable=false")
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "eureka.client.enabled=false")
 @ActiveProfiles("test")
+//@ExtendWith(WireMockServerConfig.class)
 public class AlertSchedularServiceIT {
     private static final String UPDATE_SCRIPTS_DIR = "db/scripts/";
 
     private static PostgreSQLContainer postgreSQLContainer;
-    private static WireMockServer wireMockServer;
+    private WireMockServer wireMockServer;
+//
+    @SpyBean
+    private AlertSchedularServiceImpl alertSchedularService;
 
     @BeforeAll
     public static void initWireMockServer() {
@@ -57,15 +86,28 @@ public class AlertSchedularServiceIT {
             System.setProperty("DB_USER", postgreSQLContainer.getUsername());
             System.setProperty("DB_PASSWORD", postgreSQLContainer.getPassword());
         }
-        if (wireMockServer == null) {
-            wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(5559));
-            wireMockServer.start();
-        }
+//        if (wireMockServer == null) {
+//            wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(5559));
+//            wireMockServer.start();
+//        }
+    }
+
+    @BeforeEach
+    void configureSystemUnderTest() {
+        wireMockServer = new WireMockServer(options()
+            .port(5559)
+        );
+        wireMockServer.start();
+    }
+
+    @AfterEach
+    void stopWireMockServer() {
+        wireMockServer.stop();
     }
 
     @AfterAll
     public static void dispose() {
-        wireMockServer.stop();
+//        wireMockServer.stop();
         postgreSQLContainer.stop();
     }
 
@@ -79,18 +121,54 @@ public class AlertSchedularServiceIT {
         statement.execute(script);
     }
 
-    protected void prepareStubServer(final RequestToMockServer request, final ResponseFromMockServer response) {
-        MappingBuilder mappingBuilder = WireMock.get(urlEqualTo(request.getRequestPath()));
-        ResponseDefinitionBuilder responseDefinitionBuilder = aResponse().withBody(response.getResponseBody()).withStatus(response.getHttpStatus());
+    private void prepareStubServer(String requestPath, ResponseFromMockServer response) {
+        MappingBuilder mappingBuilder = WireMock.get(urlEqualTo(requestPath));
+        ResponseDefinitionBuilder responseDefinitionBuilder = aResponse().withStatus(response.getHttpStatus());
+        if (response.getResponseBody() != null) {
+            responseDefinitionBuilder.withBody(response.getResponseBody());
+        }
         if (response.getHeaders() != null) {
-            List<HttpHeader> responseHeaders = new LinkedList<>();
-            for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-                responseHeaders.add(new HttpHeader(entry.getKey(), entry.getValue()));
-            }
+            List<HttpHeader> responseHeaders = response.getHeaders()
+                .entrySet()
+                .stream()
+                .map(entry -> new HttpHeader(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
             responseDefinitionBuilder.withHeaders(new HttpHeaders(responseHeaders));
         }
         wireMockServer.stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
     }
+
+    /*
+
+:
+:
+:
+:
+:
+    * */
+    Map<String, String> currencyConversionApi = Map.of(
+        "Content-Type", "application/json",
+        "Transfer-Encoding", "chunked",
+        "Date", "Sat, 08 Aug 2020 19:24:32 GMT",
+        "Keep-Alive", "timeout=60",
+        "Connection", "keep-alive"
+    );
+    @Test
+    public void whenWaitOneSecond_thenScheduledIsCalledAtLeastTenTimes() throws SQLException, IOException, URISyntaxException {
+        updateTestDB("new_rate_alert.sql");
+        String rawResponse = getMappingFromExternalApi("latest-rates-of-isk.json");
+        ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), currencyConversionApi);
+        String expectedProcessedResponse = getMappingFromInternalApi("latest-rates-of-isk.json");
+        prepareStubServer("/v1/rates", responseFromMockServer);
+        await()
+            .atMost(500, TimeUnit.SECONDS)
+            .untilAsserted(() -> verify(alertSchedularService).sendScheduledMailAlert());
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        updateTestDB("reset_rate_alert_table.sql");
+    }
+
 
 
 }

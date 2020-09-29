@@ -14,7 +14,9 @@ spring:
     password:
     properties:
       mail:
+        debug: false
         smtp:
+          debug: false
           auth: false
           starttls:
             enable: false
@@ -32,6 +34,29 @@ via:
     sender: no-reply@via.com
     subject: no-reply@via.com
   scheduled-email:
-    rate: '0 0 12 * * ?'
+    rate: '*/15 * * ? * *'
+
+external:
+  api:
+    rates: http://localhost:${mock-server.port}/v1/rates
+
+#hystrix:
+#  command:
+#    default:
+#      execution:
+#        timeout:
+#          enable: false
+
+feign:
+  hystrix:
+    enabled: false
+
+#eureka:
+#  client:
+#    register-with-eureka: false
+#    fetch-registry: false
+#  instance:
+#    instance-id: ${spring.application.name}:${random.int}
+#    preferIpAddress: true
 
 

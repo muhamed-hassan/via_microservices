@@ -3,15 +3,9 @@ spring:
     changeLog: "classpath:db/changelog/changelog-master.yaml"
 
 server:
-  port: 0
   error:
     whitelabel:
       enabled: false
-
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.int}
-    preferIpAddress: true
 
 hystrix:
   command:

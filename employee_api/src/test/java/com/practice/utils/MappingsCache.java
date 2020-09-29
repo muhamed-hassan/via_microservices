@@ -17,7 +17,7 @@ public final class MappingsCache {
 
     static {
         mappingsOfInternalApi = loadFiles("responses/internal_api");
-//        mappingsOfExternalApi = loadFiles("responses/external_api");
+        mappingsOfExternalApi = loadFiles("responses/external_api");
     }
 
     private MappingsCache() {}

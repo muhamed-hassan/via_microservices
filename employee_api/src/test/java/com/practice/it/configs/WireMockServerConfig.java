@@ -3,29 +3,41 @@ package com.practice.it.configs;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.stereotype.Component;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+//import com.github.tomakehurst.wiremock.WireMockServer;
+//import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
-@Component
-public class WireMockServerConfig {
+//@Component
+public class WireMockServerConfig /*implements BeforeAllCallback, AfterAllCallback*/ {
+//    @Override
+//    public void afterAll(ExtensionContext context) throws Exception {
+//
+//    }
+//
+//    @Override
+//    public void beforeAll(ExtensionContext context) throws Exception {
+//
+//    }
 
-    private WireMockServer wireMockServer;
-
-    @PostConstruct
-    public void init() {
-        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(5555));
-        wireMockServer.start();
-    }
-
-    @PreDestroy
-    public void dispose() {
-        wireMockServer.stop();
-    }
-
-    public WireMockServer wireMockServer() {
-        return wireMockServer;
-    }
+    //    private WireMockServer wireMockServer;
+//
+//    @PostConstruct
+//    public void init() {
+//        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(5555));
+//        wireMockServer.start();
+//    }
+//
+//    @PreDestroy
+//    public void dispose() {
+//        wireMockServer.stop();
+//    }
+//
+//    public WireMockServer wireMockServer() {
+//        return wireMockServer;
+//    }
 
 }

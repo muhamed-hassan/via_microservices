@@ -37,8 +37,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.practice.it.helpers.models.HttpRequest;
 
-@TestPropertySource(properties = "via.scheduling.enable=false")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, properties = "via.scheduling.enable=false")
 @ActiveProfiles("test")
 public class EmployeeControllerIT /*extends BaseControllerIT*/ {
 

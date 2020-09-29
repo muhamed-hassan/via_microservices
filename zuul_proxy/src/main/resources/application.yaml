@@ -5,14 +5,8 @@ server:
       enabled: false
 
 ribbon:
-  ReadTimeout: 5000
-
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    instance-id: ${spring.application.name}:${random.int}
+  ReadTimeout: 60000
+  ConnectTimeout: 6000
 
 zuul:
   ignored-services:
