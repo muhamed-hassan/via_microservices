@@ -1,4 +1,4 @@
-package com.practice.web.validators;
+package com.practice.interfaces.rest.validators;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

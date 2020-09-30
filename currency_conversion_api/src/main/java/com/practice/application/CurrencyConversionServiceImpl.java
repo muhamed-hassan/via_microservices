@@ -1,4 +1,4 @@
-package com.practice.services.impl;
+package com.practice.application;
 
 import static java.util.Spliterator.ORDERED;
 import static java.util.Spliterators.spliteratorUnknownSize;
@@ -12,30 +12,30 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.practice.exceptions.ServiceNotAvailableException;
-import com.practice.integration.CountryProvider;
-import com.practice.integration.RateProvider;
-import com.practice.services.CurrencyConversionService;
+import com.practice.infrastructure.integration.CountryProvider;
+import com.practice.infrastructure.integration.RateProvider;
 
 import feign.FeignException;
 
 @Component
 public class CurrencyConversionServiceImpl implements CurrencyConversionService {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private CountryProvider countryProvider;
+    private final CountryProvider countryProvider;
 
-    @Autowired
-    private RateProvider rateProvider;
+    private final RateProvider rateProvider;
+
+    public CurrencyConversionServiceImpl(ObjectMapper objectMapper, CountryProvider countryProvider, RateProvider rateProvider) {
+        this.objectMapper = objectMapper;
+        this.countryProvider = countryProvider;
+        this.rateProvider = rateProvider;
+    }
 
     @Cacheable(cacheNames = "CurrencyConversionService::getCountriesWithTheirCurrencyCodes()")
     @Override
@@ -50,7 +50,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
                     .collect(toMap(countryNode -> countryNode.get("name").asText(),
                                     countryNode -> stream(countryNode.get("currencies").spliterator(), false)
                                                     .map(currencyNode -> currencyNode.get("code").asText())
-                                                    .collect( joining(","))));
+                                                    .collect(joining(","))));
         } catch (FeignException.ServiceUnavailable e) {
             throw new ServiceNotAvailableException();
         } catch (ServiceNotAvailableException e) {

@@ -1,4 +1,4 @@
-package com.practice.web;
+package com.practice.interfaces.rest;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.practice.exceptions.ServiceNotAvailableException;
+import com.practice.application.ServiceNotAvailableException;
 
 @RestControllerAdvice
-public class GlobalErrorHandler {
+public class WebErrorHandler {
 
     private static final String ERROR_KEY = "error";
 

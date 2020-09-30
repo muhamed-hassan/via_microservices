@@ -1,4 +1,4 @@
-package com.practice.exceptions;
+package com.practice.application;
 
 public class ServiceNotAvailableException extends RuntimeException {
 

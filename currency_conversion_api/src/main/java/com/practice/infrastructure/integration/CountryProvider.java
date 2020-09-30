@@ -1,4 +1,4 @@
-package com.practice.integration;
+package com.practice.infrastructure.integration;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

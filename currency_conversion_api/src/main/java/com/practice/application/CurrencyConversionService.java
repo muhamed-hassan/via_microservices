@@ -1,4 +1,4 @@
-package com.practice.services;
+package com.practice.application;
 
 import java.util.List;
 import java.util.Map;

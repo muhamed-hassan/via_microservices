@@ -350,7 +350,7 @@
         </module>
         <module name="MethodCount">
             <property name="severity" value="error"/>
-            <property name="maxPackage" value="10"/>
+            <property name="maxPackage" value="15"/>
             <property name="id" value="MethodCountPrivate_Error"/>
         </module>
         <module name="OneStatementPerLine">

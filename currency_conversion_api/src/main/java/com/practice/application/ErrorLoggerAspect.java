@@ -1,4 +1,4 @@
-package com.practice.aspects;
+package com.practice.application;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -13,14 +13,11 @@ public class ErrorLoggerAspect {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ErrorLoggerAspect.class);
 
-    @AfterThrowing(pointcut = "within(com.practice.services.impl.*)", throwing = "exception")
+    @AfterThrowing(pointcut = "within(com.practice.application.*)", throwing = "exception")
     public void logExceptionMessage(JoinPoint joinPoint, Exception exception) {
-        StringBuilder errorMsg = new StringBuilder()
-            .append(">> Error occurred in ")
-            .append(joinPoint.getSignature().toLongString())
-            .append(" , with message: ")
-            .append(exception.getMessage() == null ? "Internal error" : exception.getMessage());
-        LOGGER.error(errorMsg.toString());
+        LOGGER.error(">> Error occurred in {}, with message: {}",
+                        joinPoint.getSignature().toLongString(),
+                        exception.getMessage() == null ? "Internal error" : exception.getMessage());
     }
 
 }
