@@ -13,8 +13,6 @@
   <groupId>com.practice</groupId>
   <artifactId>employee_api</artifactId>
   <version>1.0</version>
-  <name>employee_api_api</name>
-  <description>Employee API</description>
 
   <properties>
     <java.version>11</java.version>
@@ -36,12 +34,10 @@
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -92,12 +88,10 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-config</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -158,60 +152,60 @@
 
   <build>
     <plugins>
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--        <version>${maven-checkstyle-plugin.version}</version>-->
-<!--        <configuration>-->
-<!--          <configLocation>${main.basedir}/checkstyle_rules.xml</configLocation>-->
-<!--          <propertyExpansion>samedir=${main.basedir}</propertyExpansion>-->
-<!--          <suppressionsLocation>${main.basedir}/checkstyle_suppressions.xml</suppressionsLocation>-->
-<!--          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>-->
-<!--          <excludes>config/sun_checks.xml</excludes>-->
-<!--          <failOnViolation>true</failOnViolation>-->
-<!--          <skip>false</skip>-->
-<!--          <consoleOutput>true</consoleOutput>-->
-<!--          <includeTestSourceDirectory>true</includeTestSourceDirectory>-->
-<!--          <includeResources>false</includeResources>-->
-<!--          <includeTestResources>false</includeTestResources>-->
-<!--          <logViolationsToConsole>true</logViolationsToConsole>-->
-<!--        </configuration>-->
-<!--        <dependencies>-->
-<!--          <dependency>-->
-<!--            <groupId>com.puppycrawl.tools</groupId>-->
-<!--            <artifactId>checkstyle</artifactId>-->
-<!--            <version>${checkstyle.version}</version>-->
-<!--          </dependency>-->
-<!--        </dependencies>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <phase>process-sources</phase>-->
-<!--            <goals>-->
-<!--              <goal>check</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-pmd-plugin</artifactId>-->
-<!--        <version>${maven-pmd-plugin.version}</version>-->
-<!--        <configuration>-->
-<!--          <rulesets>-->
-<!--            <ruleset>${main.basedir}/pmd_rules.xml</ruleset>-->
-<!--          </rulesets>-->
-<!--          <printFailingErrors>true</printFailingErrors>-->
-<!--        </configuration>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <id>validate</id>-->
-<!--            <phase>validate</phase>-->
-<!--            <goals>-->
-<!--              <goal>check</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+        <configuration>
+          <configLocation>${main.basedir}/checkstyle_rules.xml</configLocation>
+          <propertyExpansion>samedir=${main.basedir}</propertyExpansion>
+          <suppressionsLocation>${main.basedir}/checkstyle_suppressions.xml</suppressionsLocation>
+          <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+          <excludes>config/sun_checks.xml</excludes>
+          <failOnViolation>true</failOnViolation>
+          <skip>false</skip>
+          <consoleOutput>true</consoleOutput>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <includeResources>false</includeResources>
+          <includeTestResources>false</includeTestResources>
+          <logViolationsToConsole>true</logViolationsToConsole>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>${maven-pmd-plugin.version}</version>
+        <configuration>
+          <rulesets>
+            <ruleset>${main.basedir}/pmd_rules.xml</ruleset>
+          </rulesets>
+          <printFailingErrors>true</printFailingErrors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>

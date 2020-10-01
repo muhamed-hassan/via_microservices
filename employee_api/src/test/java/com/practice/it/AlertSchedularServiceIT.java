@@ -3,9 +3,6 @@ package com.practice.it;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static com.practice.it.helpers.ExternalApiResponseHeaders.COUNTRIES_API;
-import static com.practice.it.helpers.ExternalEndpoints.ALL_COUNTRIES_EXTERNAL;
-import static com.practice.utils.Mappings.COUNTRIES_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
 import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
 import static org.awaitility.Awaitility.await;
@@ -19,43 +16,29 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.practice.configs.SchedularConfig;
-import com.practice.it.configs.WireMockServerConfig;
-import com.practice.it.helpers.models.RequestToMockServer;
 import com.practice.it.helpers.models.ResponseFromMockServer;
-import com.practice.services.impl.AlertSchedularServiceImpl;
+import com.practice.application.ratealert.RateAlertServiceImpl;
 
 
 //@SpringJUnitConfig(SchedularConfig.class)
@@ -72,7 +55,7 @@ public class AlertSchedularServiceIT {
     private WireMockServer wireMockServer;
 //
     @SpyBean
-    private AlertSchedularServiceImpl alertSchedularService;
+    private RateAlertServiceImpl alertSchedularService;
 
     @BeforeAll
     public static void initWireMockServer() {
