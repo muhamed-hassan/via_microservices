@@ -13,7 +13,7 @@ public class ErrorLoggerAspect {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ErrorLoggerAspect.class);
 
-    @AfterThrowing(pointcut = "within(com.practice.application.exceptions.services.impl.*)", throwing = "exception")
+    @AfterThrowing(pointcut = "within(com.practice.application.*)", throwing = "exception")
     public void logExceptionMessage(JoinPoint joinPoint, Exception exception) {
         LOGGER.error(">> Error occurred in {}, with message: {}",
                         joinPoint.getSignature().toLongString(),

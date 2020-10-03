@@ -1,8 +1,7 @@
 package com.practice.utils;
 
-import static com.practice.it.helpers.KeysOfHttpHeaders.ACCEPT_HEADER;
-
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -30,7 +29,7 @@ public final class HttpClient {
 
     public static ResponseEntity<String> doRequest(String requestUri) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(ACCEPT_HEADER, MediaType.APPLICATION_JSON_VALUE);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         HttpEntity requestEntity = new HttpEntity(headers);
         return testRestTemplate.exchange(requestUri, HttpMethod.GET, requestEntity, String.class);
     }

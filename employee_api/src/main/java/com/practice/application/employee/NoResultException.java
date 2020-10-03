@@ -1,8 +1,8 @@
 package com.practice.application.employee;
 
-import static com.practice.application.shared.ExceptionMessages.NO_DATA_FOUND;
-
 public class NoResultException extends RuntimeException {
+
+    private static final String NO_DATA_FOUND = "no data found";
 
     public NoResultException() {
         super(NO_DATA_FOUND);

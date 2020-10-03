@@ -37,7 +37,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.practice.it.helpers.models.HttpRequest;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, properties = "via.scheduling.enable=false")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT/*, properties = "via.scheduling.enable=false"*/)
 @ActiveProfiles("test")
 public class EmployeeControllerIT /*extends BaseControllerIT*/ {
 
@@ -328,66 +328,6 @@ public class EmployeeControllerIT /*extends BaseControllerIT*/ {
         assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
         JSONAssert.assertEquals(getMappingFromInternalApi("entity-not-found.json"), actualResponse.getBody(),
             JSONCompareMode.NON_EXTENSIBLE);
-    }
-
-    @Test
-    public void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailNotDuplicated_ThenSaveAndReturn202()
-        throws SQLException, IOException, URISyntaxException {
-        String requestBody = getMappingFromInternalApi("new-rate-alert.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees/alerts/rates",
-            headers, HttpMethod.POST, requestBody), String.class);
-
-        assertEquals(HttpStatus.ACCEPTED, actualResponse.getStatusCode());
-        updateTestDB("reset_rate_alert_table.sql");
-    }
-
-    @Test
-    public void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailDuplicated_ThenReturn400WithErrorMsg()
-        throws SQLException, IOException, URISyntaxException, JSONException {
-        updateTestDB("new_rate_alert.sql");
-        String requestBody = getMappingFromInternalApi("new-rate-alert.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees/alerts/rates",
-            headers, HttpMethod.POST, requestBody), String.class);
-
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi("duplicated-email.json"), actualResponse.getBody(),
-            JSONCompareMode.NON_EXTENSIBLE);
-        updateTestDB("reset_rate_alert_table.sql");
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid")
-    public void testRegisterForScheduledMailAlert_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(
-        String requestBodyFile, String errorMsgFile
-    )
-        throws JSONException {
-        String requestBody = getMappingFromInternalApi(requestBodyFile);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees/alerts/rates",
-            headers, HttpMethod.POST, requestBody), String.class);
-
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi(errorMsgFile), actualResponse.getBody(),
-            JSONCompareMode.NON_EXTENSIBLE);
-    }
-
-    private static Stream<Arguments> provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid() {
-
-        return Stream.of(
-            Arguments.of("new-rate-alert-with-invalid-email.json", "invalid-email.json"),
-            Arguments.of("new-rate-alert-with-invalid-base.json", "invalid-currency-code.json")
-        );
     }
 
 }

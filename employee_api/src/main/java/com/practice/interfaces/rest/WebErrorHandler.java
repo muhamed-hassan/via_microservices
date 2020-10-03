@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.practice.application.employee.EntityNotFoundException;
 import com.practice.application.employee.NoResultException;
-import com.practice.application.ratealert.ServiceNotAvailableException;
 
 @RestControllerAdvice
 public class WebErrorHandler {
@@ -60,12 +59,6 @@ public class WebErrorHandler {
                                     .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(Map.of(ERROR_KEY, message));
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleServiceNotAvailable(ServiceNotAvailableException exception) {
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                                .body(Map.of(ERROR_KEY, exception.getMessage()));
     }
 
     @ExceptionHandler

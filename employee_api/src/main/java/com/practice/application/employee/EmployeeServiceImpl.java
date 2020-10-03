@@ -15,9 +15,14 @@ import com.practice.domain.employee.Employee;
 import com.practice.domain.employee.EmployeeRepository;
 import com.practice.domain.employee.EmployeeSpecification;
 import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
+import com.practice.interfaces.rest.validators.FieldCriteriaValidator;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
+
+    private static final String ALL_EMPLOYEES_CACHE = "EmployeeService::getEmployees()";
+
+    private static final String FILTERED_EMPLOYEES_CACHE_BY_CRITERIA = "EmployeeService::getEmployeeByFieldCriteria()";
 
     private final EmployeeRepository employeeRepository;
 
@@ -33,7 +38,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         this.serviceErrorHandler = serviceErrorHandler;
     }
 
-    @Cacheable(value = "EmployeeService::getEmployees()")
+    @Cacheable(ALL_EMPLOYEES_CACHE)
     @Override
     public List<SavedEmployeeDto> getEmployees() {
         List<SavedEmployeeDto> result = employeeRepository.findAllSavedEmployees();
@@ -43,29 +48,24 @@ public class EmployeeServiceImpl implements EmployeeService {
         return result;
     }
 
-    @Cacheable(value = "EmployeeService::getEmployeeByFieldCriteria()")
+    @Cacheable(FILTERED_EMPLOYEES_CACHE_BY_CRITERIA)
     @Override
-    public Employee getEmployeeByFieldCriteria(String fieldCriteria) {
-        String[] criterionTokens = fieldCriteria.split(":");
-        if (criterionTokens != null && criterionTokens.length == 2) {
-            String fieldName = criterionTokens[0].toLowerCase();
-            String fieldValue = criterionTokens[1];
-            Specification<Employee> specification;
-            if ("id".equals(fieldName)) {
+    public Employee getEmployeeByFieldCriteria(String fieldName, String fieldValue) {
+        Specification<Employee> specification = null;
+        switch (fieldName) {
+            case FieldCriteriaValidator.ID:
                 specification = employeeSpecification.getEmployeeByIdSpec(fieldName, Long.parseLong(fieldValue));
-            } else if ("email".equals(fieldName) || "username".equals(fieldName)) {
+                break;
+            case FieldCriteriaValidator.EMAIL:
+            case FieldCriteriaValidator.USERNAME:
                 specification = employeeSpecification.getEmployeeByTextualSpec(fieldName, fieldValue);
-            } else {
-                throw new UnsupportedOperationException("Invalid criteria allowed criteria are id, email and username in the form of fieldName:validValue");
-            }
-            return employeeRepository.findOne(specification)
-                                        .orElseThrow(EntityNotFoundException::new);
-        } else {
-            throw new IllegalArgumentException("Invalid criteria format, it should be in the form of fieldName:fieldValue");
+                break;
         }
+        return employeeRepository.findOne(specification)
+                                    .orElseThrow(EntityNotFoundException::new);
     }
 
-    @CacheEvict(value = "EmployeeService::getEmployees()", allEntries = true)
+    @CacheEvict(value = ALL_EMPLOYEES_CACHE, allEntries = true)
     @Transactional
     @Override
     public long createEmployee(Employee employee) {
@@ -76,7 +76,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    @CacheEvict(value = { "EmployeeService::getEmployees()", "EmployeeService::getEmployeeByFieldCriteria()" }, allEntries = true)
+    @CacheEvict(value = { ALL_EMPLOYEES_CACHE, FILTERED_EMPLOYEES_CACHE_BY_CRITERIA }, allEntries = true)
     @Transactional
     @Override
     public void updateEmployeeEmailById(long id, String email) {
@@ -91,7 +91,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    @CacheEvict(value = { "EmployeeService::getEmployees()", "EmployeeService::getEmployeeByFieldCriteria()" }, allEntries = true)
+    @CacheEvict(value = { ALL_EMPLOYEES_CACHE, FILTERED_EMPLOYEES_CACHE_BY_CRITERIA }, allEntries = true)
     @Transactional
     @Override
     public void deleteEmployeeById(long id) {

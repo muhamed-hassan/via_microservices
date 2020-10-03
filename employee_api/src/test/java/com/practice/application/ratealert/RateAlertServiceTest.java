@@ -1,10 +1,11 @@
-package com.practice.application.exceptions.services;
+package com.practice.application.ratealert;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,48 +13,80 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.IContext;
 
-import com.practice.infrastructure.integration.CurrencyConversionProvider;
-import com.practice.domain.persistence.entities.RateAlert;
+import com.practice.application.shared.ServiceErrorHandler;
+import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
-import com.practice.application.ratealert.RateAlertServiceImpl;
+import com.practice.infrastructure.integration.CurrencyConversionProvider;
 
 @ExtendWith(MockitoExtension.class)
-public class AlertSchedularServiceTest {
+class RateAlertServiceTest {
 
-    @InjectMocks
-    private RateAlertServiceImpl alertSchedularService;
+    private static final String DEFAULT_SENDER = "no-reply@via.com";
 
-    @Mock
+    private static final String DEFAULT_SUBJECT = "Hello dear customer";
+
+    private static final int CHUNK_SIZE = 50;
+
+    private RateAlertService rateAlertService;
+
     private RateAlertRepository rateAlertRepository;
 
-    @Mock
+    private CurrencyConversionProvider currencyConversionProvider;
+
     private MailSender mailSender;
 
-    @Mock
     private ITemplateEngine templateEngine;
 
-    @Mock
-    private CurrencyConversionProvider currencyConversionProvider;
+    private ServiceErrorHandler serviceErrorHandler;
+
+    @BeforeEach
+    void injectRefs() {
+        rateAlertRepository = mock(RateAlertRepository.class);
+        currencyConversionProvider = mock(CurrencyConversionProvider.class);
+        mailSender = mock(MailSender.class);
+        templateEngine = mock(ITemplateEngine.class);
+        serviceErrorHandler = mock(ServiceErrorHandler.class);
+        rateAlertService = new RateAlertServiceImpl(rateAlertRepository, currencyConversionProvider, mailSender, templateEngine,
+                                                        serviceErrorHandler, DEFAULT_SENDER, DEFAULT_SUBJECT, CHUNK_SIZE);
+    }
+
+    @Test
+    public void testRegisterForScheduledMailAlert_WhenEmailIsNew_ThenCreateIt() {
+        RateAlert entity = mock(RateAlert.class);
+        when(rateAlertRepository.save(any(RateAlert.class)))
+            .thenReturn(entity);
+
+        rateAlertService.registerForScheduledMailAlert(new RateAlert());
+
+        verify(rateAlertRepository).save(any(RateAlert.class));
+    }
+
+    @Test
+    public void testRegisterForScheduledMailAlert_WhenEmailIsDuplicated_ThenThrowIllegalArgumentException() {
+        doThrow(DataIntegrityViolationException.class)
+            .when(rateAlertRepository).save(any(RateAlert.class));
+        when(serviceErrorHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
+            .thenReturn(new IllegalArgumentException("DB constraint is violated for this field: email"));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> rateAlertService.registerForScheduledMailAlert(new RateAlert()));
+    }
 
     @Test
     public void testSendScheduledMailAlert_WhenTriggeringTheJob_ThenSendEmailsWithResult()
             throws InterruptedException {
-        ReflectionTestUtils.setField(alertSchedularService, "defaultSender", "SENDER");
-        ReflectionTestUtils.setField(alertSchedularService, "defaultSubject", "SUBJECT");
-        ReflectionTestUtils.setField(alertSchedularService, "chunkSize", 50);
         String base = "ISK";
         List<String> bases = List.of(base);
         when(rateAlertRepository.findAllDistinctBases())
@@ -77,7 +110,7 @@ public class AlertSchedularServiceTest {
         doNothing()
             .when(mailSender).send(any(SimpleMailMessage.class));
 
-        alertSchedularService.sendScheduledMailAlert();
+        rateAlertService.sendScheduledMailAlert();
 
         verify(rateAlertRepository).findAllDistinctBases();
         verify(rateAlertRepository).count();
@@ -130,9 +163,9 @@ public class AlertSchedularServiceTest {
         when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(List.of());
 
-        alertSchedularService.sendScheduledMailAlert();
+        rateAlertService.sendScheduledMailAlert();
 
-        verify(rateAlertRepository, times(1)).findAllDistinctBases();
+        verify(rateAlertRepository).findAllDistinctBases();
     }
 
 }

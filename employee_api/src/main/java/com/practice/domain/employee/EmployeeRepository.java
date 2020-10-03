@@ -12,7 +12,7 @@ import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
 
-    @Query("SELECT new com.practice.interfaces.rest.web.dtos.SavedEmployeeDto(e.id, e.name, e.username, e.email, e.phoneNumber, e.age) "
+    @Query("SELECT new com.practice.interfaces.rest.dtos.SavedEmployeeDto(e.id, e.name, e.username, e.email, e.phoneNumber, e.age) "
         + "FROM Employee e")
     List<SavedEmployeeDto> findAllSavedEmployees();
 

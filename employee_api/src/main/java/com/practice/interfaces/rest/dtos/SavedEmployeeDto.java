@@ -1,7 +1,6 @@
 package com.practice.interfaces.rest.dtos;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.util.Objects;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -32,22 +31,18 @@ public class SavedEmployeeDto extends BaseEmployeeDto {
     }
 
     @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(id)
-            .toHashCode();
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (this == other)
             return true;
         if (other == null || getClass() != other.getClass())
             return false;
         SavedEmployeeDto that = (SavedEmployeeDto) other;
-        return new EqualsBuilder()
-                .append(id, that.getId())
-            .isEquals();
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
 }

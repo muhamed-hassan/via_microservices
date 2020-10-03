@@ -9,7 +9,7 @@ public interface EmployeeService {
 
     List<SavedEmployeeDto> getEmployees();
 
-    Employee getEmployeeByFieldCriteria(String fieldCriteria);
+    Employee getEmployeeByFieldCriteria(String fieldName, String fieldValue);
 
     long createEmployee(Employee employee);
 

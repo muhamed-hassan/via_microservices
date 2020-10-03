@@ -1,5 +1,7 @@
 package com.practice.domain.ratealert;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,9 +11,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.practice.infrastructure.configs.constants.Messages;
 import com.practice.infrastructure.configs.constants.Patterns;
@@ -59,22 +58,18 @@ public class RateAlert {
     }
 
     @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(id)
-            .toHashCode();
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (this == other)
             return true;
         if (other == null || getClass() != other.getClass())
             return false;
         RateAlert that = (RateAlert) other;
-        return new EqualsBuilder()
-                .append(id, that.getId())
-            .isEquals();
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
 }

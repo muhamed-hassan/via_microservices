@@ -32,31 +32,17 @@ chunk-size: 50
 via:
   default-email:
     sender: no-reply@via.com
-    subject: no-reply@via.com
+    subject: 'Scheduled rate alerts'
   scheduled-email:
-    rate: '*/15 * * ? * *'
+    rate: '*/5 * * ? * *'
 
 external:
   api:
     rates: http://localhost:${mock-server.port}/v1/rates
 
-#hystrix:
-#  command:
-#    default:
-#      execution:
-#        timeout:
-#          enable: false
+#feign:
+#  hystrix:
+#    enabled: false
 
-feign:
-  hystrix:
-    enabled: false
-
-#eureka:
-#  client:
-#    register-with-eureka: false
-#    fetch-registry: false
-#  instance:
-#    instance-id: ${spring.application.name}:${random.int}
-#    preferIpAddress: true
 
 

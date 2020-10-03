@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +25,7 @@ import com.practice.interfaces.rest.assemblers.EntityAssembler;
 import com.practice.interfaces.rest.dtos.EmailDto;
 import com.practice.interfaces.rest.dtos.NewEmployeeDto;
 import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
+import com.practice.interfaces.rest.validators.FieldCriteriaValidator;
 import com.practice.interfaces.rest.validators.FieldCriteriaRule;
 
 import io.swagger.annotations.Api;
@@ -33,9 +33,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-@Api(value = "Employee Management API")
+@Api("Employee Management API")
 @RestController
-@RequestMapping(value = "v1/employees")
+@RequestMapping("v1/employees")
 @Validated
 public class EmployeeController {
 
@@ -45,17 +45,22 @@ public class EmployeeController {
 
     private final DtoAssembler dtoAssembler;
 
+    private final FieldCriteriaValidator fieldCriteriaValidator;
+
     public EmployeeController(EmployeeService employeeService,
                                 EntityAssembler entityAssembler,
-                                DtoAssembler dtoAssembler) {
+                                DtoAssembler dtoAssembler,
+                                FieldCriteriaValidator fieldCriteriaValidator) {
         this.employeeService = employeeService;
         this.entityAssembler = entityAssembler;
         this.dtoAssembler = dtoAssembler;
+        this.fieldCriteriaValidator = fieldCriteriaValidator;
     }
 
-    @ApiOperation(value = "View a list of available employees")
+    @ApiOperation("View a list of available employees")
     @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded to retrieve a list of employees", response = List.class),
+        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded to retrieve a list of employees",
+                        response = List.class),
         @ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Failed to retrieve a list of employees")
     })
     @GetMapping
@@ -63,19 +68,30 @@ public class EmployeeController {
         return employeeService.getEmployees();
     }
 
-    @ApiOperation(value = "Retrieve employee by field criteria")
+    @ApiOperation("Retrieve employee by field criteria")
     @ApiResponses(value = {
-        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded to retrieve an employee by field criteria", response = SavedEmployeeDto.class),
+        @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "Succeeded to retrieve an employee by field criteria",
+                        response = SavedEmployeeDto.class),
         @ApiResponse(code = HttpURLConnection.HTTP_NOT_FOUND, message = "Employee not found"),
         @ApiResponse(code = HttpURLConnection.HTTP_NOT_IMPLEMENTED, message = "Not supported field criteria is used"),
         @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Invalid field criteria format")
     })
     @GetMapping("criteria/{fieldCriteria}")
     public SavedEmployeeDto getEmployeeByFieldCriteria(@PathVariable @FieldCriteriaRule String fieldCriteria) {
-        return dtoAssembler.toDto(employeeService.getEmployeeByFieldCriteria(fieldCriteria), SavedEmployeeDto.class);
+        String[] criterionTokens = fieldCriteria.split(":");
+        if (criterionTokens != null && criterionTokens.length == 2) {
+            String fieldName = criterionTokens[0].toLowerCase();
+            String fieldValue = criterionTokens[1];
+            if (!fieldCriteriaValidator.isValid(fieldName)) {
+                throw new UnsupportedOperationException("Invalid criteria allowed criteria are id, email and username in the form of fieldName:validValue");
+            }
+            return dtoAssembler.toDto(employeeService.getEmployeeByFieldCriteria(fieldName, fieldValue), SavedEmployeeDto.class);
+        } else {
+            throw new IllegalArgumentException("Invalid criteria format, it should be in the form of fieldName:fieldValue");
+        }
     }
 
-    @ApiOperation(value = "Create a new employee")
+    @ApiOperation("Create a new employee")
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_CREATED, message = "Succeeded to create a new employee"),
         @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Employee payload contains invalid value"),
@@ -90,7 +106,7 @@ public class EmployeeController {
                                 .build();
     }
 
-    @ApiOperation(value = "Update employee's email by id")
+    @ApiOperation("Update employee's email by id")
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_NO_CONTENT, message = "Succeeded to update employee's email"),
         @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Failed to update employee's email"),
@@ -102,7 +118,7 @@ public class EmployeeController {
         return ResponseEntity.noContent().build();
     }
 
-    @ApiOperation(value = "Delete employee by id")
+    @ApiOperation("Delete employee by id")
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_NO_CONTENT, message = "Succeeded to delete employee by id"),
         @ApiResponse(code = HttpURLConnection.HTTP_NOT_FOUND, message = "Requested employee for delete doesn't exist"),

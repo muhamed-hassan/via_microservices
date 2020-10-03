@@ -4,7 +4,6 @@ import java.net.HttpURLConnection;
 
 import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -23,9 +22,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-@Api(value = "Rate Alert API")
+@Api("Rate Alert API")
 @RestController
-@RequestMapping(value = "v1/alerts")
+@RequestMapping("v1/alerts")
 @Validated
 public class RateAlertController {
 
@@ -38,7 +37,7 @@ public class RateAlertController {
         this.entityAssembler = entityAssembler;
     }
 
-    @ApiOperation(value = "Register for scheduled mail alerts")
+    @ApiOperation("Register for scheduled mail alerts")
     @ApiResponses(value = {
         @ApiResponse(code = HttpURLConnection.HTTP_ACCEPTED, message = "The request of scheduled alert is registered and will be processed later"),
         @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Rate alert payload contains invalid value"),

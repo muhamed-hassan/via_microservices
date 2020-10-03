@@ -1,5 +1,7 @@
 package com.practice.domain.employee;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,13 +15,9 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.practice.infrastructure.configs.constants.Messages;
 import com.practice.infrastructure.configs.constants.Patterns;
 import com.practice.infrastructure.configs.constants.Rules;
-import com.practice.interfaces.rest.web.dtos.SavedEmployeeDto;
 
 @Table(name = "employee")
 @Entity
@@ -114,22 +112,18 @@ public class Employee {
     }
 
     @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(id)
-            .toHashCode();
-    }
-
-    @Override
     public boolean equals(Object other) {
         if (this == other)
             return true;
         if (other == null || getClass() != other.getClass())
             return false;
-        SavedEmployeeDto that = (SavedEmployeeDto) other;
-        return new EqualsBuilder()
-                .append(id, that.getId())
-            .isEquals();
+        Employee that = (Employee) other;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
 }

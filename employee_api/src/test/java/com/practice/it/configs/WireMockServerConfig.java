@@ -8,8 +8,8 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.stereotype.Component;
 
-//import com.github.tomakehurst.wiremock.WireMockServer;
-//import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 //@Component
 public class WireMockServerConfig /*implements BeforeAllCallback, AfterAllCallback*/ {
@@ -22,8 +22,8 @@ public class WireMockServerConfig /*implements BeforeAllCallback, AfterAllCallba
 //    public void beforeAll(ExtensionContext context) throws Exception {
 //
 //    }
-
-    //    private WireMockServer wireMockServer;
+//
+//        private WireMockServer wireMockServer;
 //
 //    @PostConstruct
 //    public void init() {
