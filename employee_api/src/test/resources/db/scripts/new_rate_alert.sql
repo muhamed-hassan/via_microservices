@@ -3,4 +3,4 @@ insert
         rate_alert
         (base, email)
     values
-        ('CZK', 'dorian@test.com');
+        ('ISK', 'dorian@test.com');

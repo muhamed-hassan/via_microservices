@@ -2,24 +2,39 @@ package com.practice.utils;
 
 public final class Mappings {
 
-    public static final String COUNTRIES_JSON = "countries.json";
-    public static final String COUNTRIES_WITH_INVALID_CODE_JSON = "countries-with-invalid-code.json";
-    public static final String COUNTRIES_WITH_INVALID_COUNTRY_NAME_JSON = "countries-with-invalid-country-name.json";
-    public static final String COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_JSON = "countries-with-invalid-country-name-and-currencies.json";
-    public static final String COUNTRIES_WITH_INVALID_COUNTRY_NAME_AND_CURRENCIES_AND_CODE_JSON = "countries-with-invalid-country-name-and-currencies-and-code.json";
-    public static final String COUNTRIES_WITH_INVALID_CURRENCIES_JSON = "countries-with-invalid-currencies.json";
-    public static final String COUNTRIES_WITH_INVALID_CURRENCIES_AND_CODE_JSON = "countries-with-invalid-currencies-and-code.json";
-
-    public static final String COUNTRY_OF_ISK_JSON = "country-of-isk.json";
-
+    public static final String NEW_EMAIL_WITH_INVALID_VALUE_JSON = "new-email-with-invalid-value.json";
+    public static final String NEW_EMAIL_JSON = "new-email.json";
+    public static final String ALL_EMPLOYEES_JSON = "all_employees.json";
+    public static final String EMPLOYEE_WITH_CRITERIA_JSON = "employee-with-criteria.json";
+    public static final String INVALID_FIELD_CRITERIA_JSON = "invalid-field-criteria.json";
+    public static final String NEW_EMPLOYEE_JSON = "new-employee.json";
+    public static final String NEW_EMAIL_WITH_DUPLICATED_VALUE_JSON = "new-email-with-duplicated-value.json";
+    public static final String NEW_EMPLOYEE_WITH_DUPLICATED_EMAIL_JSON = "new-employee-with-duplicated-email.json";
+    public static final String NEW_EMPLOYEE_WITH_DUPLICATED_PHONE_NUMBER_JSON = "new-employee-with-duplicated-phone-number.json";
+    public static final String NEW_EMPLOYEE_WITH_DUPLICATED_USERNAME_JSON = "new-employee-with-duplicated-username.json";
+    public static final String NEW_EMPLOYEE_WITH_INVALID_EMAIL_JSON = "new-employee-with-invalid-email.json";
+    public static final String NEW_EMPLOYEE_WITH_INVALID_MAX_AGE_JSON = "new-employee-with-invalid-max-age.json";
+    public static final String NEW_EMPLOYEE_WITH_INVALID_MIN_AGE_JSON = "new-employee-with-invalid-min-age.json";
+    public static final String NEW_EMPLOYEE_WITH_INVALID_NAME_JSON = "new-employee-with-invalid-name.json";
+    public static final String NEW_EMPLOYEE_WITH_INVALID_PHONE_NUMBER_JSON = "new-employee-with-invalid-phone-number.json";
+    public static final String NEW_EMPLOYEE_WITH_INVALID_USERNAME_JSON = "new-employee-with-invalid-username.json";
+    public static final String NEW_RATE_ALERT_JSON = "new-rate-alert.json";
+    public static final String NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON = "new-rate-alert-with-invalid-email.json";
+    public static final String NEW_RATE_ALERT_WITH_INVALID_BASE_JSON = "new-rate-alert-with-invalid-base.json";
     public static final String LATEST_RATES_OF_ISK_JSON = "latest-rates-of-isk.json";
-    public static final String LATEST_RATES_OF_ISK_JSON_WITH_INVALID_RATES = "latest-rates-of-isk-with-invalid-rates.json";
 
-    public static final String LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON = "lowest-and-highest-rates-of-isk.json";
-
-    public static final String SERVICE_NOT_AVAILABLE_JSON = "service-not-available.json";
+    public static final String ENTITY_NOT_FOUND_JSON = "entity-not-found.json";
+    public static final String NO_DATA_FOUND_JSON = "no-data-found.json";
+    public static final String INVALID_USERNAME_JSON = "invalid-username.json";
+    public static final String DUPLICATED_USERNAME_JSON = "duplicated-username.json";
+    public static final String INVALID_MAX_AGE_JSON = "invalid-max-age.json";
+    public static final String INVALID_MIN_AGE_JSON = "invalid-min-age.json";
+    public static final String INVALID_NAME_JSON = "invalid-name.json";
+    public static final String INVALID_PHONE_NUMBER_JSON = "invalid-phone-number.json";
+    public static final String DUPLICATED_PHONE_NUMBER_JSON = "duplicated-phone-number.json";
+    public static final String INVALID_EMAIL_JSON = "invalid-email.json";
+    public static final String DUPLICATED_EMAIL_JSON = "duplicated-email.json";
     public static final String INVALID_CURRENCY_CODE_JSON = "invalid-currency-code.json";
-    public static final String MISSING_CURRENCY_CODE_JSON = "missing-currency-code.json";
 
     private Mappings() {}
 

@@ -19,7 +19,6 @@
     <main.basedir>${basedir}</main.basedir>
     <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
     <springfox-swagger2.version>2.8.0</springfox-swagger2.version>
-    <wiremock.server.version>2.26.3</wiremock.server.version>
     <testcontainers.postgresql.version>1.14.3</testcontainers.postgresql.version>
     <awaitility.version>3.1.6</awaitility.version>
     <greenmail.version>1.5.5</greenmail.version>
@@ -105,12 +104,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock-jre8</artifactId>
-      <version>${wiremock.server.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -220,11 +213,10 @@
         <version>${jacoco-maven-plugin.version}</version>
         <configuration>
           <excludes>
-            <exclude>com/practice/aspects/*</exclude>
-            <exclude>com/practice/configs/**/*</exclude>
-            <exclude>com/practice/integration/**/*</exclude>
-            <exclude>com/practice/transfomers/*</exclude>
-            <exclude>com/practice/web/**/*</exclude>
+            <exclude>com/practice/application/shared/*</exclude>
+            <exclude>com/practice/domain/**/*</exclude>
+            <exclude>com/practice/infrastructure/**/*</exclude>
+            <exclude>com/practice/interfaces/rest/**/*</exclude>
             <exclude>com/practice/Main.class</exclude>
           </excludes>
         </configuration>

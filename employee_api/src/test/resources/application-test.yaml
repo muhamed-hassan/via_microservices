@@ -9,7 +9,7 @@ spring:
     changeLog: "classpath:db/changelog/changelog-master.yaml"
   mail:
     host: localhost
-    port: 25
+    port: 3025
     username:
     password:
     properties:
@@ -21,9 +21,6 @@ spring:
           starttls:
             enable: false
 
-server:
-  port: 1111
-
 mock-server:
   port: 5559
 
@@ -34,15 +31,9 @@ via:
     sender: no-reply@via.com
     subject: 'Scheduled rate alerts'
   scheduled-email:
-    rate: '*/5 * * ? * *'
+    rate: '*/10 * * ? * *'
 
-external:
-  api:
-    rates: http://localhost:${mock-server.port}/v1/rates
 
-#feign:
-#  hystrix:
-#    enabled: false
 
 
 

@@ -1,120 +1,99 @@
 package com.practice.it;
 
-import static com.practice.utils.HttpClient.doRequest;
+import static com.practice.utils.Mappings.ALL_EMPLOYEES_JSON;
+import static com.practice.utils.Mappings.DUPLICATED_EMAIL_JSON;
+import static com.practice.utils.Mappings.DUPLICATED_PHONE_NUMBER_JSON;
+import static com.practice.utils.Mappings.DUPLICATED_USERNAME_JSON;
+import static com.practice.utils.Mappings.EMPLOYEE_WITH_CRITERIA_JSON;
+import static com.practice.utils.Mappings.ENTITY_NOT_FOUND_JSON;
+import static com.practice.utils.Mappings.INVALID_EMAIL_JSON;
+import static com.practice.utils.Mappings.INVALID_FIELD_CRITERIA_JSON;
+import static com.practice.utils.Mappings.INVALID_MAX_AGE_JSON;
+import static com.practice.utils.Mappings.INVALID_MIN_AGE_JSON;
+import static com.practice.utils.Mappings.INVALID_NAME_JSON;
+import static com.practice.utils.Mappings.INVALID_PHONE_NUMBER_JSON;
+import static com.practice.utils.Mappings.INVALID_USERNAME_JSON;
+import static com.practice.utils.Mappings.NEW_EMAIL_JSON;
+import static com.practice.utils.Mappings.NEW_EMAIL_WITH_DUPLICATED_VALUE_JSON;
+import static com.practice.utils.Mappings.NEW_EMAIL_WITH_INVALID_VALUE_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_DUPLICATED_EMAIL_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_DUPLICATED_PHONE_NUMBER_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_DUPLICATED_USERNAME_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_EMAIL_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_MAX_AGE_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_MIN_AGE_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_NAME_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_PHONE_NUMBER_JSON;
+import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_USERNAME_JSON;
+import static com.practice.utils.Mappings.NO_DATA_FOUND_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.json.JSONException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
 
-import com.practice.it.helpers.models.HttpRequest;
+class EmployeeControllerIT extends BaseControllerIT {
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT/*, properties = "via.scheduling.enable=false"*/)
-@ActiveProfiles("test")
-public class EmployeeControllerIT /*extends BaseControllerIT*/ {
-
-    private static final String UPDATE_SCRIPTS_DIR = "db/scripts/";
-
-    private static PostgreSQLContainer postgreSQLContainer;
-
-    @BeforeAll
-    public static void initTestDB() {
-        if (postgreSQLContainer == null) {
-            postgreSQLContainer = new PostgreSQLContainer("postgres:12")
-                .withDatabaseName("integration-tests-db")
-                .withUsername("username")
-                .withPassword("password");
-            postgreSQLContainer.start();
-            System.setProperty("DB_URL", postgreSQLContainer.getJdbcUrl());
-            System.setProperty("DB_USER", postgreSQLContainer.getUsername());
-            System.setProperty("DB_PASSWORD", postgreSQLContainer.getPassword());
-        }
-    }
-
-    public void updateTestDB(String scriptName)
-        throws SQLException, URISyntaxException, IOException {
-        String script = Files.readAllLines(Paths.get(ClassLoader.getSystemResource(UPDATE_SCRIPTS_DIR + scriptName).toURI()))
-            .stream()
-            .collect(Collectors.joining());
-        Connection connection = postgreSQLContainer.createConnection("");
-        Statement statement = connection.createStatement();
-        statement.execute(script);
+    @Sql(scripts = "classpath:db/scripts/all_employees_data.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
+    @Test
+    void testGetEmployees_WhenDataFound_ThenReturn200WithData() 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    get("/v1/employees")
+                                                    .accept(MediaType.APPLICATION_JSON));
+        
+        resultActions.andExpect(status().isOk())
+                        .andExpect(content().json(getMappingFromInternalApi(ALL_EMPLOYEES_JSON), true));
     }
 
     @Test
-    public void testGetEmployees_WhenDataFound_ThenReturn200WithData() throws Exception {
-        updateTestDB("all_employees_data.sql");
-        String expectedResponse = getMappingFromInternalApi("all_employees.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.GET), String.class);
-
-        assertEquals(HttpStatus.OK, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
-        updateTestDB("reset_employees_table.sql");
+    void testGetEmployees_WhenDataNotFound_ThenReturn404WithErrorMsg() 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    get("/v1/employees")
+                                                    .accept(MediaType.APPLICATION_JSON));
+        
+        resultActions.andExpect(status().isNotFound())
+                        .andExpect(content().json(getMappingFromInternalApi(NO_DATA_FOUND_JSON), true));
     }
 
-    @Test
-    public void testGetEmployees_WhenDataNotFound_ThenReturn404WithErrorMsg() throws Exception {
-        String expectedResponse = getMappingFromInternalApi("no-data-found.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.GET), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
-    }
-
+    @Sql(scripts = "classpath:db/scripts/employee_with_criteria.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataFound")
-    public void testGetEmployeeByFieldCriteria_WhenDataFound_ThenReturn200WithData
-        (String pathVariable) throws Exception {
-        updateTestDB("employee_with_criteria.sql");
-        String expectedResponse = getMappingFromInternalApi("employee-with-criteria.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/criteria/{0}", pathVariable),
-            headers, HttpMethod.GET), String.class);
-
-        assertEquals(HttpStatus.OK, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
-        updateTestDB("reset_employees_table.sql");
+    void testGetEmployeeByFieldCriteria_WhenDataFound_ThenReturn200WithData(String pathVariable) 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    get(String.format("/v1/employees/criteria/%s", pathVariable))
+                                                    .accept(MediaType.APPLICATION_JSON));
+        
+        resultActions.andExpect(status().isOk())
+                        .andExpect(content().json(getMappingFromInternalApi(EMPLOYEE_WITH_CRITERIA_JSON), true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataFound() {
         return Stream.of(
-            Arguments.of("id:1"),
+            Arguments.of("id:1001"),
             Arguments.of("email:wanya@test.com"),
             Arguments.of("username:wanya_costrau")
         );
@@ -122,22 +101,20 @@ public class EmployeeControllerIT /*extends BaseControllerIT*/ {
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataNotFound")
-    public void testGetEmployeeByFieldCriteria_WhenDataNotFound_ThenReturn404WithErrorMsg
-        (String pathVariable) throws Exception {
-        String expectedResponse = getMappingFromInternalApi("entity-not-found.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testGetEmployeeByFieldCriteria_WhenDataNotFound_ThenReturn404WithErrorMsg(String pathVariable) 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    get(String.format("/v1/employees/criteria/%s", pathVariable))
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/criteria/{0}", pathVariable),
-            headers, HttpMethod.GET), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isNotFound())
+                        .andExpect(content().json(getMappingFromInternalApi(ENTITY_NOT_FOUND_JSON), true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataNotFound() {
         return Stream.of(
-            Arguments.of("id:2"),
+            Arguments.of("id:404"),
             Arguments.of("email:anna@test.com"),
             Arguments.of("username:anna_nyporka")
         );
@@ -145,17 +122,15 @@ public class EmployeeControllerIT /*extends BaseControllerIT*/ {
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenSendingInvalidCriteria")
-    public void testGetEmployeeByFieldCriteria_WhenSendingInvalidCriteria_ThenReturn400WithErrorMsg
-        (String pathVariable) throws Exception {
-        String expectedResponse = getMappingFromInternalApi("invalid-field-criteria.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testGetEmployeeByFieldCriteria_WhenSendingInvalidCriteria_ThenReturn400WithErrorMsg(String pathVariable) 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    get(String.format("/v1/employees/criteria/%s", pathVariable))
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/criteria/{0}", pathVariable),
-            headers, HttpMethod.GET), String.class);
-
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(expectedResponse, actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(getMappingFromInternalApi(INVALID_FIELD_CRITERIA_JSON), true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenSendingInvalidCriteria() {
@@ -173,161 +148,154 @@ public class EmployeeControllerIT /*extends BaseControllerIT*/ {
     }
 
     @Test
-    public void testCreateEmployee_WhenPayloadIsValid_ThenSaveItAndReturn201WithItsLocation
-        () {
-        String requestBody = getMappingFromInternalApi("new-employee.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testCreateEmployee_WhenPayloadIsValid_ThenSaveItAndReturn201WithItsLocation()
+            throws Exception {
 
-        ResponseEntity<Void> response = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.POST, requestBody), Void.class);
+        ResultActions resultActions = getMockMvc().perform(
+                                                    post("/v1/employees")
+                                                    .content(getMappingFromInternalApi(NEW_EMPLOYEE_JSON))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getHeaders().getLocation());
-        assertTrue(response.getHeaders().getLocation().getPath().matches("^\\/v1\\/employees\\/[1-9][0-9]*$"));
+        resultActions.andExpect(status().isCreated())
+                        .andExpect(header().exists("Location"));
     }
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestCreateEmployeeWhenPayloadIsInvalid")
-    public void testCreateEmployee_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg
-        (String requestBodyFile, String errorMsgFile) throws Exception {
-        String requestBody = getMappingFromInternalApi(requestBodyFile);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testCreateEmployee_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsgFile)
+            throws Exception {
 
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.POST, requestBody), String.class);
+        ResultActions resultActions = getMockMvc().perform(
+                                                    post("/v1/employees")
+                                                    .content(getMappingFromInternalApi(requestBodyFile))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi(errorMsgFile), actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(getMappingFromInternalApi(errorMsgFile), true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestCreateEmployeeWhenPayloadIsInvalid() {
-
         return Stream.of(
-            Arguments.of("new-employee-with-invalid-email.json", "invalid-email.json"),
-            Arguments.of("new-employee-with-invalid-max-age.json", "invalid-max-age.json"),
-            Arguments.of("new-employee-with-invalid-min-age.json", "invalid-min-age.json"),
-            Arguments.of("new-employee-with-invalid-name.json", "invalid-name.json"),
-            Arguments.of("new-employee-with-invalid-phone-number.json", "invalid-phone-number.json"),
-            Arguments.of("new-employee-with-invalid-username.json", "invalid-username.json")
+            Arguments.of(NEW_EMPLOYEE_WITH_INVALID_EMAIL_JSON, INVALID_EMAIL_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_INVALID_MAX_AGE_JSON, INVALID_MAX_AGE_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_INVALID_MIN_AGE_JSON, INVALID_MIN_AGE_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_INVALID_NAME_JSON, INVALID_NAME_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_INVALID_PHONE_NUMBER_JSON, INVALID_PHONE_NUMBER_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_INVALID_USERNAME_JSON, INVALID_USERNAME_JSON)
         );
     }
 
+    @Sql(scripts = "classpath:db/scripts/new_employee.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestCreateEmployeeWhenDbConstraintIsViolated")
-    public void testCreateEmployee_WhenDbConstraintIsViolated_ThenReturn400WithErrorMsg
-        (String requestBodyFile, String errorMsgFile) throws Exception {
-        updateTestDB("new_employee.sql");
-        String requestBody = getMappingFromInternalApi(requestBodyFile);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testCreateEmployee_WhenDbConstraintIsViolated_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsgFile)
+            throws Exception {
 
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from("/v1/employees", headers, HttpMethod.POST, requestBody), String.class);
+        ResultActions resultActions = getMockMvc().perform(
+                                                    post("/v1/employees")
+                                                    .content(getMappingFromInternalApi(requestBodyFile))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi(errorMsgFile), actualResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
-        updateTestDB("reset_employees_table.sql");
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(getMappingFromInternalApi(errorMsgFile), true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestCreateEmployeeWhenDbConstraintIsViolated() {
-
         return Stream.of(
-            Arguments.of("new-employee-with-duplicated-email.json", "duplicated-email.json"),
-            Arguments.of("new-employee-with-duplicated-phone-number.json", "duplicated-phone-number.json"),
-            Arguments.of("new-employee-with-duplicated-username.json", "duplicated-username.json")
+            Arguments.of(NEW_EMPLOYEE_WITH_DUPLICATED_EMAIL_JSON, DUPLICATED_EMAIL_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_DUPLICATED_PHONE_NUMBER_JSON, DUPLICATED_PHONE_NUMBER_JSON),
+            Arguments.of(NEW_EMPLOYEE_WITH_DUPLICATED_USERNAME_JSON, DUPLICATED_USERNAME_JSON)
         );
     }
 
+    @Sql(scripts = "classpath:db/scripts/new_employee.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmailIsValidAndNotDuplicated_ThenUpdateAndReturn204() throws SQLException, IOException, URISyntaxException {
-        updateTestDB("new_employee.sql");
-        String requestBody = getMappingFromInternalApi("new-email.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testUpdateEmployeeEmailById_WhenEmailIsValidAndNotDuplicated_ThenUpdateAndReturn204()
+            throws Exception {
 
-        ResponseEntity<Void> response = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1), headers, HttpMethod.PATCH, requestBody),
-            Void.class);
+        ResultActions resultActions = getMockMvc().perform(
+                                                    patch(String.format("/v1/employees/%d", 1001))
+                                                    .content(getMappingFromInternalApi(NEW_EMAIL_JSON))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        updateTestDB("reset_employees_table.sql");
+        resultActions.andExpect(status().isNoContent());
+    }
+
+    @Sql(scripts = "classpath:db/scripts/all_employees_data.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
+    @Test
+    void testUpdateEmployeeEmailById_WhenEmailIsValidAndDuplicated_ThenReturn400WithErrorMsg()
+            throws Exception {
+
+        ResultActions resultActions = getMockMvc().perform(
+                                                    patch(String.format("/v1/employees/%d", 1001))
+                                                    .content(getMappingFromInternalApi(NEW_EMAIL_WITH_DUPLICATED_VALUE_JSON))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(getMappingFromInternalApi(DUPLICATED_EMAIL_JSON), true));
+
     }
 
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmailIsValidAndDuplicated_ThenReturn400WithErrorMsg()
-        throws SQLException, IOException, URISyntaxException, JSONException {
-        updateTestDB("all_employees_data.sql");
-        String requestBody = getMappingFromInternalApi("new-email-with-duplicated-value.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testUpdateEmployeeEmailById_WhenEmailIsValidAndEmployeeNotFound_ThenReturn404WithErrorMsg()
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    patch(String.format("/v1/employees/%d", 404))
+                                                    .content(getMappingFromInternalApi(NEW_EMAIL_JSON))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        ResponseEntity<String> actualResponse = doRequest(
-            HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1), headers, HttpMethod.PATCH, requestBody), String.class);
-
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi("duplicated-email.json"), actualResponse.getBody(),
-            JSONCompareMode.NON_EXTENSIBLE);
-        updateTestDB("reset_employees_table.sql");
+        resultActions.andExpect(status().isNotFound())
+                        .andExpect(content().json(getMappingFromInternalApi(ENTITY_NOT_FOUND_JSON), true));
     }
 
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmailIsValidAndEmployeeNotFound_ThenReturn404WithErrorMsg()
-        throws SQLException, IOException, URISyntaxException, JSONException {
-        String requestBody = getMappingFromInternalApi("new-email.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testUpdateEmployeeEmailById_WhenEmailIsInvalid_ThenReturn400WithErrorMsg() 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    patch(String.format("/v1/employees/%d", 1001))
+                                                    .content(getMappingFromInternalApi(NEW_EMAIL_WITH_INVALID_VALUE_JSON))
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        ResponseEntity<String> actualResponse = doRequest(
-            HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 404), headers, HttpMethod.PATCH, requestBody), String.class);
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(getMappingFromInternalApi(INVALID_EMAIL_JSON), true));
 
-        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi("entity-not-found.json"), actualResponse.getBody(),
-            JSONCompareMode.NON_EXTENSIBLE);
+    }
+
+    @Sql(scripts = "classpath:db/scripts/new_employee.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
+    @Test
+    void testDeleteEmployeeById_WhenDataFound_ThenDeleteAndReturn204() 
+            throws Exception {
+        
+        ResultActions resultActions = getMockMvc().perform(
+                                                    delete(String.format("/v1/employees/%d", 1001))
+                                                    .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isNoContent());
     }
 
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmailIsInvalid_ThenReturn400WithErrorMsg() throws JSONException {
-        String requestBody = getMappingFromInternalApi("new-email-with-invalid-value.json");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+    void testDeleteEmployeeById_WhenDataNotFound_ThenReturn404WithErrorMsg() 
+            throws Exception {
 
-        ResponseEntity<String> actualResponse = doRequest(
-            HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1), headers, HttpMethod.PATCH, requestBody), String.class);
+        ResultActions resultActions = getMockMvc().perform(
+                                                    delete(String.format("/v1/employees/%d", 404))
+                                                    .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(HttpStatus.BAD_REQUEST, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi("invalid-email.json"), actualResponse.getBody(),
-            JSONCompareMode.NON_EXTENSIBLE);
-    }
-
-    @Test
-    public void testDeleteEmployeeById_WhenDataFound_ThenDeleteAndReturn204() throws SQLException, IOException, URISyntaxException {
-        updateTestDB("all_employees_data.sql");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 1),
-            headers, HttpMethod.DELETE), String.class);
-
-        assertEquals(HttpStatus.NO_CONTENT, actualResponse.getStatusCode());
-        updateTestDB("reset_employees_table.sql");
-    }
-
-    @Test
-    public void testDeleteEmployeeById_WhenDataNotFound_ThenReturn404WithErrorMsg() throws JSONException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        ResponseEntity<String> actualResponse = doRequest(HttpRequest.from(MessageFormat.format("/v1/employees/{0}", 404),
-            headers, HttpMethod.DELETE), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, actualResponse.getStatusCode());
-        JSONAssert.assertEquals(getMappingFromInternalApi("entity-not-found.json"), actualResponse.getBody(),
-            JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isNotFound())
+                        .andExpect(content().json(getMappingFromInternalApi(ENTITY_NOT_FOUND_JSON), true));
     }
 
 }
