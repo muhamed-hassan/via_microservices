@@ -26,7 +26,7 @@ chunk-size: 50
 via:
   default-email:
     sender: no-reply@via.com
-    subject: no-reply@via.com
+    subject: 'Scheduled rate alerts'
   scheduled-email:
     rate: '*/10 * * ? * *'
 
