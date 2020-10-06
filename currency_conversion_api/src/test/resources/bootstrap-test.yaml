@@ -6,8 +6,5 @@ spring:
       enabled: false
     discovery:
       enabled: false
-#    service-registry:
-#      auto-registration:
-#        enabled: false
 
 

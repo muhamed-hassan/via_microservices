@@ -25,21 +25,24 @@ public final class MappingsCache {
     private static Map<String, String> loadFiles(String directory) {
         try (Stream<Path> files = Files.walk(Paths.get(ClassLoader.getSystemResource(directory).toURI()))) {
             return files.filter(Files::isRegularFile)
-                        .map(file -> {
-                            String fileContent;
-                            try {
-                                fileContent = Files.readAllLines(Paths.get(file.toUri()),
-                                                                    Charset.forName(StandardCharsets.UTF_8.name()))
-                                                    .stream()
-                                                    .collect(Collectors.joining());
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                            return new MappingEntry(file.getFileName().toString(), fileContent); })
+                        .map(MappingsCache::toMappingEntry)
                         .collect(Collectors.toMap(MappingEntry::getFileName, MappingEntry::getFileContent));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static MappingEntry toMappingEntry(Path filePath) {
+        String fileContent;
+        try {
+            fileContent = Files.readAllLines(Paths.get(filePath.toUri()),
+                                                Charset.forName(StandardCharsets.UTF_8.name()))
+                                .stream()
+                                .collect(Collectors.joining());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new MappingEntry(filePath.getFileName().toString(), fileContent);
     }
 
     public static String getMappingFromInternalApi(String fileName) {

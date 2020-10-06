@@ -18,7 +18,6 @@ import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED;
 import static com.practice.it.helpers.InternalEndpoints.LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE;
 import static com.practice.utils.Constants.ISK;
-import static com.practice.utils.HttpClient.doRequest;
 import static com.practice.utils.Mappings.COUNTRIES_JSON;
 import static com.practice.utils.Mappings.COUNTRY_OF_ISK_JSON;
 import static com.practice.utils.Mappings.INVALID_CURRENCY_CODE_JSON;
@@ -28,10 +27,11 @@ import static com.practice.utils.Mappings.MISSING_CURRENCY_CODE_JSON;
 import static com.practice.utils.Mappings.SERVICE_NOT_AVAILABLE_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
 import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -42,13 +42,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -58,13 +59,17 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.practice.it.configs.WireMockServerConfig;
 import com.practice.it.models.ResponseFromMockServer;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest//(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
 public class CurrencyConversionControllerIT {
 
     @Autowired
     private WireMockServerConfig wireMockServerConfig;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
     public void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsAvailable_ThenReturn200WithData()
@@ -74,10 +79,12 @@ public class CurrencyConversionControllerIT {
         String expectedProcessedResponse = getMappingFromInternalApi(COUNTRIES_JSON);
         prepareStubServer(ALL_COUNTRIES_EXTERNAL, responseFromMockServer);
 
-        ResponseEntity<String> responseFromCurrencyApi = doRequest(ALL_COUNTRIES_INTERNAL);
+        ResultActions resultActions = mockMvc.perform(
+                                                get(ALL_COUNTRIES_INTERNAL)
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(OK.value(), responseFromCurrencyApi.getStatusCode().value());
-        JSONAssert.assertEquals(expectedProcessedResponse, responseFromCurrencyApi.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isOk())
+                        .andExpect(content().json(expectedProcessedResponse, true));
     }
 
     @Test
@@ -87,10 +94,12 @@ public class CurrencyConversionControllerIT {
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(ALL_COUNTRIES_EXTERNAL, responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(ALL_COUNTRIES_INTERNAL);
+        ResultActions resultActions = mockMvc.perform(
+                                                get(ALL_COUNTRIES_INTERNAL)
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isServiceUnavailable())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     @Test
@@ -101,10 +110,12 @@ public class CurrencyConversionControllerIT {
         String expectedProcessedResponse = getMappingFromInternalApi(COUNTRY_OF_ISK_JSON);
         prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK));
+        ResultActions resultActions = mockMvc.perform(
+                                                get(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK))
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isOk())
+                        .andExpect(content().json(expectedProcessedResponse, true));
     }
 
     @Test
@@ -114,10 +125,12 @@ public class CurrencyConversionControllerIT {
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK));
+        ResultActions resultActions = mockMvc.perform(
+                                                get(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK))
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isServiceUnavailable())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     @Test
@@ -125,10 +138,12 @@ public class CurrencyConversionControllerIT {
             throws Exception {
         String errorMsg = getMappingFromInternalApi(INVALID_CURRENCY_CODE_JSON);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE);
+        ResultActions resultActions = mockMvc.perform(
+                                                get(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE)
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(BAD_REQUEST.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     @Test
@@ -139,10 +154,12 @@ public class CurrencyConversionControllerIT {
         String expectedProcessedResponse = getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON);
         prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK));
+        ResultActions resultActions = mockMvc.perform(
+                                                get(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK))
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isOk())
+                        .andExpect(content().json(expectedProcessedResponse, true));
     }
 
     @Test
@@ -152,10 +169,12 @@ public class CurrencyConversionControllerIT {
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK));
+        ResultActions resultActions = mockMvc.perform(
+                                                get(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK))
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isServiceUnavailable())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     @ParameterizedTest
@@ -163,10 +182,12 @@ public class CurrencyConversionControllerIT {
     public void testGetHighestAndLowestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
             throws Exception {
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(requestUri);
+        ResultActions resultActions = mockMvc.perform(
+                                                get(requestUri)
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(BAD_REQUEST.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode() {
@@ -186,10 +207,12 @@ public class CurrencyConversionControllerIT {
         String expectedProcessedResponse = getMappingFromInternalApi(LATEST_RATES_OF_ISK_JSON);
         prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, ISK));
+        ResultActions resultActions = mockMvc.perform(
+                                                get(MessageFormat.format(LATEST_RATES_INTERNAL, ISK))
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(OK.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(expectedProcessedResponse, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isOk())
+                        .andExpect(content().json(expectedProcessedResponse, true));
     }
 
     @Test
@@ -199,10 +222,12 @@ public class CurrencyConversionControllerIT {
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
         prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(MessageFormat.format(LATEST_RATES_INTERNAL, ISK));
+        ResultActions resultActions = mockMvc.perform(
+                                                get(MessageFormat.format(LATEST_RATES_INTERNAL, ISK))
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(SERVICE_UNAVAILABLE.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isServiceUnavailable())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     @ParameterizedTest
@@ -210,10 +235,12 @@ public class CurrencyConversionControllerIT {
     public void testGetLatestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
             throws Exception {
 
-        ResponseEntity<String> actualProcessedResponse = doRequest(requestUri);
+        ResultActions resultActions = mockMvc.perform(
+                                                get(requestUri)
+                                                .accept(MediaType.APPLICATION_JSON));
 
-        assertEquals(BAD_REQUEST.value(), actualProcessedResponse.getStatusCode().value());
-        JSONAssert.assertEquals(errorMsg, actualProcessedResponse.getBody(), JSONCompareMode.NON_EXTENSIBLE);
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(content().json(errorMsg, true));
     }
 
     private static Stream<Arguments> provideArgumentsForTestGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode() {
