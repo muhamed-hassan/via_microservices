@@ -1,4 +1,4 @@
-package com.practice.it.configs;
+package com.practice.it.helpers;
 
 import static com.practice.utils.Mappings.LATEST_RATES_OF_ISK_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromExternalApi;
