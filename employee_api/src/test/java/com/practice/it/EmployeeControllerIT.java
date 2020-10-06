@@ -147,6 +147,7 @@ class EmployeeControllerIT extends BaseControllerIT {
         );
     }
 
+    @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
     void testCreateEmployee_WhenPayloadIsValid_ThenSaveItAndReturn201WithItsLocation()
             throws Exception {
