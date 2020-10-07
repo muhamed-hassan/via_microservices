@@ -1,0 +1,66 @@
+version: "3"
+services:     
+  employee-api-db:
+    image: postgres:12.2-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "employees"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+
+  smtp-server:
+    build: 
+      context: ./smtp_server
+    ports:
+      - "25:25"  
+      - "9985:9985"  
+    entrypoint: "java -jar MockMock.jar -p 25"
+
+  service-registry:
+    build: 
+      context: ./service_registry
+    ports:
+      - "8761:8761"  
+    entrypoint: "java -jar service_registry-1.0.jar"
+    
+  config-server:
+    build: 
+      context: ./config_server
+    ports:
+      - "8888:8888"  
+    entrypoint: "./wait-for-it.sh -t 0 service-registry:8761 -- java -jar config_server-1.0.jar"
+    depends_on:
+      - service-registry    
+
+  api-gateway:
+    build: 
+      context: ./api_gateway
+    ports:
+      - "9000:9000"  
+    entrypoint: "./wait-for-it.sh -t 0 service-registry:8761 -- java -jar api_gateway-1.0.jar"
+    depends_on:
+      - service-registry
+
+  currency-conversion-api:
+    build: 
+      context: ./currency_conversion_api
+    ports:
+      - "8085:8085"  
+    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar currency_conversion_api-1.0.jar"
+    depends_on:
+      - config-server
+      - api-gateway
+
+  employee_api:
+    build: 
+      context: ./employee_api
+    ports:
+      - "8080:8080"  
+    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar employee_api-1.0.jar"
+    depends_on:
+      - employee-api-db
+      - smtp-server
+      - config-server
+      - currency-conversion-api
+      - api-gateway

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.infrastructure.integration.CurrencyConversionProvider;
 
 @Primary
-@Component
+@Component("mockedCurrencyConversionProvider")
 public class MockedCurrencyConversionProvider implements CurrencyConversionProvider {
 
     @Override

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/employees
+    url: jdbc:postgresql://employee-api-db:5432/employees
     username: postgres
     password: root
   jpa:
@@ -9,7 +9,7 @@ spring:
       hibernate:
         format_sql: true
   mail:
-    host: localhost
+    host: smtp-server
     port: 25
     username:
     password:
@@ -19,7 +19,6 @@ spring:
           auth: false
           starttls:
             enable: false
-# fake SMTP server configs for dev purposes [should be replaced with actual configs in prod mode]
 
 chunk-size: 50
 

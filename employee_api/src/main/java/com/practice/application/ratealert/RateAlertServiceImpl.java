@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -41,7 +42,9 @@ public class RateAlertServiceImpl implements RateAlertService {
 
     private final int chunkSize;
 
-    public RateAlertServiceImpl(RateAlertRepository rateAlertRepository, CurrencyConversionProvider currencyConversionProvider,
+
+    public RateAlertServiceImpl(RateAlertRepository rateAlertRepository,
+                                    @Qualifier("currencyConversionProvider") CurrencyConversionProvider currencyConversionProvider,
                                     MailSender mailSender, ITemplateEngine templateEngine, ServiceErrorHandler serviceErrorHandler,
                                     @Value("${via.default-email.sender}") String defaultSender,
                                     @Value("${via.default-email.subject}") String defaultSubject,
