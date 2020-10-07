@@ -5,4 +5,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableCaching
-public class CachingConfig {}
+public class CachingConfig {
+
+}

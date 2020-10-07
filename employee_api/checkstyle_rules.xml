@@ -51,6 +51,7 @@
         <module name="MemberName">
             <property name="id" value="memberNameError"/>
             <property name="severity" value="error"/>
+            <property name="format" value="^([A-Z](_?[A-Z0-9]+)*)|([a-z][a-zA-Z0-9]*)$"/>
         </module>
         <module name="MethodName">
             <property name="severity" value="error"/>
@@ -97,12 +98,12 @@
         </module>
         <module name="ParameterNumber">
             <property name="severity" value="error"/>
-            <property name="max" value="5"/>
+            <property name="max" value="10"/>
             <property name="id" value="ParameterNumber_Error"/>
         </module>
         <module name="ParameterNumber">
             <property name="severity" value="error"/>
-            <property name="max" value="7"/>
+            <property name="max" value="15"/>
             <property name="id" value="ParameterNumber_Severe_Error"/>
         </module>
         <module name="EmptyForIteratorPad">
@@ -120,7 +121,7 @@
             <property name="severity" value="error"/>
         </module>
         <module name="OperatorWrap">
-            <property name="severity" value="error"/>
+            <property name="severity" value="warning"/>
         </module>
         <module name="ParenPad">
             <property name="severity" value="error"/>
@@ -174,7 +175,7 @@
             <property name="severity" value="error"/>
         </module>
         <module name="MagicNumber">
-            <property name="severity" value="error"/>
+            <property name="severity" value="warning"/>
             <property name="id" value="magicNumberError"/>
             <property name="ignoreNumbers" value="5555,50,0.0043762489,0.0241258921,0.4456180417,2,1,0,-1"/>
         </module>
@@ -234,7 +235,7 @@
             <property name="tokens" value="METHOD_DEF,PARAMETER_DEF,VARIABLE_DEF"/>
         </module>
         <module name="ModifiedControlVariable">
-            <property name="severity" value="error"/>
+            <property name="severity" value="warning"/>
         </module>
         <module name="ReturnCount">
             <property name="severity" value="error"/>
@@ -350,7 +351,7 @@
         </module>
         <module name="MethodCount">
             <property name="severity" value="error"/>
-            <property name="maxPackage" value="10"/>
+            <property name="maxPackage" value="15"/>
             <property name="id" value="MethodCountPrivate_Error"/>
         </module>
         <module name="OneStatementPerLine">
@@ -386,7 +387,7 @@
         <property name="severity" value="error"/>
     </module>
     <module name="RegexpSingleline">
-        <property name="severity" value="error"/>
+        <property name="severity" value="warning"/>
         <property name="format" value="\s+$"/>
         <property name="message" value="Line has trailing spaces"/>
         <property name="id" value="TrailingSpaces_Error"/>

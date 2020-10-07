@@ -20,7 +20,7 @@ import com.practice.application.employee.NoResultException;
 @RestControllerAdvice
 public class WebErrorHandler {
 
-    private static String ERROR_KEY = "error";
+    private final String ERROR_KEY = "error";
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleUnsupportedOperationException(UnsupportedOperationException exception) {

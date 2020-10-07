@@ -19,11 +19,11 @@ public class MockedCurrencyConversionProvider implements CurrencyConversionProvi
     @Override
     public Map<String, Double> getLatestRatesByBase(String currencyCode) {
         String expectedProcessedResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
-        Map<String, Double> result = null;
+        Map<String, Double> result;
         try {
             result = new ObjectMapper().readValue(expectedProcessedResponse, Map.class);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return result;
     }

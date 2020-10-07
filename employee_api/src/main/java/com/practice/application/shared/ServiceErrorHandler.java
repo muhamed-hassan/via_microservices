@@ -22,7 +22,7 @@ public class ServiceErrorHandler {
                         .findFirst()
                         .get() :
                 field.getName())
-            .filter(fieldName -> errorMsg.matches(".*(_"+fieldName+"_).*"))
+            .filter(fieldName -> errorMsg.matches(".*(_" + fieldName + "_).*"))
             .findFirst()
             .get();
         throw new IllegalArgumentException("DB constraint is violated for this field: " + violatedField.replaceAll("_", " "));
