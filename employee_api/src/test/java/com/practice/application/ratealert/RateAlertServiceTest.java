@@ -28,7 +28,7 @@ import org.thymeleaf.context.IContext;
 import com.practice.application.shared.ServiceErrorHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
-import com.practice.infrastructure.integration.CurrencyConversionProvider;
+import com.practice.infrastructure.integration.CurrencyConversionClient;
 
 @ExtendWith(MockitoExtension.class)
 class RateAlertServiceTest {
@@ -43,7 +43,7 @@ class RateAlertServiceTest {
 
     private RateAlertRepository rateAlertRepository;
 
-    private CurrencyConversionProvider currencyConversionProvider;
+    private CurrencyConversionClient currencyConversionClient;
 
     private MailSender mailSender;
 
@@ -54,11 +54,11 @@ class RateAlertServiceTest {
     @BeforeEach
     void injectRefs() {
         rateAlertRepository = mock(RateAlertRepository.class);
-        currencyConversionProvider = mock(CurrencyConversionProvider.class);
+        currencyConversionClient = mock(CurrencyConversionClient.class);
         mailSender = mock(MailSender.class);
         templateEngine = mock(ITemplateEngine.class);
         serviceErrorHandler = mock(ServiceErrorHandler.class);
-        rateAlertService = new RateAlertServiceImpl(rateAlertRepository, currencyConversionProvider, mailSender, templateEngine,
+        rateAlertService = new RateAlertServiceImpl(rateAlertRepository, currencyConversionClient, mailSender, templateEngine,
                                                         serviceErrorHandler, DEFAULT_SENDER, DEFAULT_SUBJECT, CHUNK_SIZE);
     }
 
@@ -91,7 +91,7 @@ class RateAlertServiceTest {
         List<String> bases = List.of(base);
         when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(bases);
-        when(currencyConversionProvider.getLatestRatesByBase(anyString()))
+        when(currencyConversionClient.getLatestRatesByBase(anyString()))
             .thenReturn(getLatestRatesOfIsk());
         when(rateAlertRepository.count())
             .thenReturn(1L);

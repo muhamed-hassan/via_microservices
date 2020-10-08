@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "countryProvider",
                 url = "${external.api.countries}",
-                fallback = CountryProviderFallback.class)
-public interface CountryProvider {
+                fallback = CountryClientFallback.class)
+public interface CountryClient {
 
     @GetMapping
     String getCountriesWithTheirCurrencyCodes();

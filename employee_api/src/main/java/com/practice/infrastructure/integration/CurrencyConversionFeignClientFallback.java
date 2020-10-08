@@ -6,7 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CurrencyConversionProviderFallback implements CurrencyConversionProvider {
+public class CurrencyConversionFeignClientFallback implements CurrencyConversionFeignClient {
 
     @Override
     public Map<String, Double> getLatestRatesByBase(String currencyCode) {

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Profile("!test")
 @FeignClient(name = "currency-conversion-api",
-                fallback = CurrencyConversionProviderFallback.class)
-public interface CurrencyConversionProvider extends CurrencyConversionClient {
+                fallback = CurrencyConversionFeignClientFallback.class)
+public interface CurrencyConversionFeignClient extends CurrencyConversionClient {
 
     @GetMapping("v1/rates")
     Map<String, Double> getLatestRatesByBase(@RequestParam String currencyCode);

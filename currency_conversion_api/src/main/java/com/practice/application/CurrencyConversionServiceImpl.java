@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.practice.infrastructure.integration.CountryProvider;
-import com.practice.infrastructure.integration.RateProvider;
+import com.practice.infrastructure.integration.CountryClient;
+import com.practice.infrastructure.integration.RateClient;
 
 import feign.FeignException;
 
@@ -27,21 +27,21 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
 
     private final ObjectMapper objectMapper;
 
-    private final CountryProvider countryProvider;
+    private final CountryClient countryClient;
 
-    private final RateProvider rateProvider;
+    private final RateClient rateClient;
 
-    public CurrencyConversionServiceImpl(ObjectMapper objectMapper, CountryProvider countryProvider, RateProvider rateProvider) {
+    public CurrencyConversionServiceImpl(ObjectMapper objectMapper, CountryClient countryClient, RateClient rateClient) {
         this.objectMapper = objectMapper;
-        this.countryProvider = countryProvider;
-        this.rateProvider = rateProvider;
+        this.countryClient = countryClient;
+        this.rateClient = rateClient;
     }
 
     @Cacheable(cacheNames = "CurrencyConversionService::getCountriesWithTheirCurrencyCodes()")
     @Override
     public Map<String, String> getCountriesWithTheirCurrencyCodes() {
         try {
-            String responseBody = countryProvider.getCountriesWithTheirCurrencyCodes();
+            String responseBody = countryClient.getCountriesWithTheirCurrencyCodes();
             if (StringUtils.isBlank(responseBody)) {
                 throw new ServiceNotAvailableException();
             }
@@ -64,7 +64,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Override
     public List<String> getCountriesByCurrencyCode(String currencyCode) {
         try {
-            String responseBody = countryProvider.getCountriesByCurrencyCode(currencyCode);
+            String responseBody = countryClient.getCountriesByCurrencyCode(currencyCode);
             if (StringUtils.isBlank(responseBody)) {
                 throw new ServiceNotAvailableException();
             }
@@ -96,7 +96,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Override
     public Map<String, Double> getLatestRatesByBase(String base) {
         try {
-            String responseBody = rateProvider.getLatestRatesByBase(base);
+            String responseBody = rateClient.getLatestRatesByBase(base);
             if (StringUtils.isBlank(responseBody)) {
                 throw new ServiceNotAvailableException();
             }
