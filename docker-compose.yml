@@ -2,6 +2,8 @@ version: "3"
 services:     
   employee-api-db:
     image: postgres:12.2-alpine
+    container_name: employee-api-db
+    hostname: employee-api-db
     ports:
       - "5432:5432"
     environment:
@@ -12,14 +14,18 @@ services:
   smtp-server:
     build: 
       context: ./smtp_server
+    container_name: smtp-server
+    hostname: smtp-server     
     ports:
       - "25:25"  
       - "9985:9985"  
-    entrypoint: "java -jar MockMock.jar -p 25"
+    entrypoint: "java -jar MockMock.jar"
 
   service-registry:
     build: 
       context: ./service_registry
+    container_name: service-registry
+    hostname: service-registry    
     ports:
       - "8761:8761"  
     entrypoint: "java -jar service_registry-1.0.jar"
@@ -27,15 +33,17 @@ services:
   config-server:
     build: 
       context: ./config_server
+    container_name: config-server
+    hostname: config-server  
     ports:
       - "8888:8888"  
-    entrypoint: "./wait-for-it.sh -t 0 service-registry:8761 -- java -jar config_server-1.0.jar"
-    depends_on:
-      - service-registry    
+    entrypoint: "java -jar config_server-1.0.jar"
 
   api-gateway:
     build: 
       context: ./api_gateway
+    container_name: api-gateway
+    hostname: api-gateway  
     ports:
       - "9000:9000"  
     entrypoint: "./wait-for-it.sh -t 0 service-registry:8761 -- java -jar api_gateway-1.0.jar"
@@ -45,22 +53,24 @@ services:
   currency-conversion-api:
     build: 
       context: ./currency_conversion_api
+    container_name: currency-conversion-api
+    hostname: currency-conversion-api
     ports:
       - "8085:8085"  
-    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar currency_conversion_api-1.0.jar"
+    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar -Dserver.port=8085 currency_conversion_api-1.0.jar"
     depends_on:
       - config-server
       - api-gateway
 
-  employee_api:
+  employee-api:
     build: 
       context: ./employee_api
+    container_name: employee-api
+    hostname: employee-api
     ports:
       - "8080:8080"  
-    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar employee_api-1.0.jar"
+    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar -Dserver.port=8080 employee_api-1.0.jar"
     depends_on:
       - employee-api-db
-      - smtp-server
-      - config-server
+      - smtp-server      
       - currency-conversion-api
-      - api-gateway

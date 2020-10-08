@@ -3,10 +3,6 @@ external:
     countries: https://restcountries.eu/rest/v2
     rates: https://api.exchangeratesapi.io/latest
 
-feign:
-  hystrix:
-    enabled: true
-
 logging:
   level:
     root: info

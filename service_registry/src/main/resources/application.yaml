@@ -11,6 +11,8 @@ server:
 eureka:
   instance:
     prefer-ip-address: true
+    hostname: service-registry
   client:
     register-with-eureka: false
     fetch-registry: false
+

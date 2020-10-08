@@ -7,13 +7,14 @@ server:
 eureka:
   instance:
     prefer-ip-address: true
+    hostname: api-gateway
   client:
     service-url:
       defaultZone: http://service-registry:8761/eureka/
 
 ribbon:
-  ReadTimeout: 60000
-  ConnectTimeout: 6000
+  ConnectTimeout: 1000
+  ReadTimeout: 3000
 
 zuul:
   ignored-services:

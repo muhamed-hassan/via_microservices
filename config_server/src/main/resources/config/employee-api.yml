@@ -27,11 +27,8 @@ via:
     sender: no-reply@via.com
     subject: 'Scheduled rate alerts'
   scheduled-email:
-    rate: '0 0 12 * * ?'
-
-feign:
-  hystrix:
-    enabled: true
+    rate: '*/10 * * ? * *'
+#'0 0 12 * * ?'
 
 logging:
   level:

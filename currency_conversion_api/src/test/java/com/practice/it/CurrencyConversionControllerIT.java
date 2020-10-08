@@ -59,11 +59,11 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.practice.it.configs.WireMockServerConfig;
 import com.practice.it.models.ResponseFromMockServer;
 
-@SpringBootTest//(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
-public class CurrencyConversionControllerIT {
+class CurrencyConversionControllerIT {
 
     @Autowired
     private WireMockServerConfig wireMockServerConfig;
@@ -72,7 +72,7 @@ public class CurrencyConversionControllerIT {
     private MockMvc mockMvc;
 
     @Test
-    public void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+    void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
         String rawResponse = getMappingFromExternalApi(COUNTRIES_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), COUNTRIES_API);
@@ -88,7 +88,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+    void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
@@ -103,7 +103,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetCountriesByCurrencyCode_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+    void testGetCountriesByCurrencyCode_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
         String rawResponse = getMappingFromExternalApi(COUNTRY_OF_ISK_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), COUNTRIES_API);
@@ -119,7 +119,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetCountriesByCurrencyCode_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+    void testGetCountriesByCurrencyCode_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
@@ -134,7 +134,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetCountriesByCurrencyCode_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg()
+    void testGetCountriesByCurrencyCode_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(INVALID_CURRENCY_CODE_JSON);
 
@@ -147,7 +147,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+    void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
         String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), RATES_API);
@@ -163,7 +163,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+    void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
@@ -179,7 +179,7 @@ public class CurrencyConversionControllerIT {
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode")
-    public void testGetHighestAndLowestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
+    void testGetHighestAndLowestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
             throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -200,7 +200,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetLatestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
+    void testGetLatestRatesByBase_When3rdPartyApiIsAvailable_ThenReturn200WithData()
             throws Exception {
         String rawResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(rawResponse, OK.value(), RATES_API);
@@ -216,7 +216,7 @@ public class CurrencyConversionControllerIT {
     }
 
     @Test
-    public void testGetLatestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
+    void testGetLatestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
             throws Exception {
         String errorMsg = getMappingFromInternalApi(SERVICE_NOT_AVAILABLE_JSON);
         ResponseFromMockServer responseFromMockServer = new ResponseFromMockServer(errorMsg, SERVICE_UNAVAILABLE.value(), SERVICE_NOT_AVAILABLE_HEADERS);
@@ -232,7 +232,7 @@ public class CurrencyConversionControllerIT {
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode")
-    public void testGetLatestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
+    void testGetLatestRatesByBase_WhenInternalApiUriHasInvalidCurrencyCode_ThenReturn400WithErrorMsg(String requestUri, String errorMsg)
             throws Exception {
 
         ResultActions resultActions = mockMvc.perform(

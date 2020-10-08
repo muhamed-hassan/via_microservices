@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -21,14 +20,14 @@ import org.thymeleaf.context.Context;
 import com.practice.application.shared.ServiceErrorHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
-import com.practice.infrastructure.integration.CurrencyConversionProvider;
+import com.practice.infrastructure.integration.CurrencyConversionClient;
 
 @Service
 public class RateAlertServiceImpl implements RateAlertService {
 
     private final RateAlertRepository rateAlertRepository;
 
-    private final CurrencyConversionProvider currencyConversionProvider;
+    private final CurrencyConversionClient currencyConversionProvider;
 
     private final MailSender mailSender;
 
@@ -42,9 +41,7 @@ public class RateAlertServiceImpl implements RateAlertService {
 
     private final int chunkSize;
 
-
-    public RateAlertServiceImpl(RateAlertRepository rateAlertRepository,
-                                    @Qualifier("currencyConversionProvider") CurrencyConversionProvider currencyConversionProvider,
+    public RateAlertServiceImpl(RateAlertRepository rateAlertRepository, CurrencyConversionClient currencyConversionProvider,
                                     MailSender mailSender, ITemplateEngine templateEngine, ServiceErrorHandler serviceErrorHandler,
                                     @Value("${via.default-email.sender}") String defaultSender,
                                     @Value("${via.default-email.subject}") String defaultSubject,

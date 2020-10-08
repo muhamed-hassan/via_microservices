@@ -4,13 +4,6 @@ server:
     whitelabel:
       enabled: false
 
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    serviceUrl:
-      defaultZone: http://service-registry:8761/eureka/
-
 spring:
   profiles:
     active: native

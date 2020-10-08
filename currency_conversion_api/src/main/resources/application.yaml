@@ -6,6 +6,7 @@ server:
 eureka:
   instance:
     prefer-ip-address: true
+    hostname: currency-conversion-api
   client:
     service-url:
       defaultZone: http://service-registry:8761/eureka/

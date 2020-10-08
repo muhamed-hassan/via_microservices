@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.practice.infrastructure.integration.CurrencyConversionProvider;
+import com.practice.infrastructure.integration.CurrencyConversionClient;
 
 @Primary
-@Component("mockedCurrencyConversionProvider")
-public class MockedCurrencyConversionProvider implements CurrencyConversionProvider {
+@Component
+public class MockedCurrencyConversionProvider implements CurrencyConversionClient {
 
     @Override
     public Map<String, Double> getLatestRatesByBase(String currencyCode) {
