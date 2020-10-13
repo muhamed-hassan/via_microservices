@@ -1,16 +1,20 @@
 package com.practice.application;
 
 import java.util.List;
-import java.util.Map;
+
+import com.practice.infrastructure.integration.models.CountryWithBriefView;
+import com.practice.infrastructure.integration.models.CountryWithDetailedView;
+import com.practice.infrastructure.integration.models.StatisticsOfRates;
+import com.practice.infrastructure.integration.models.Rates;
 
 public interface CurrencyConversionService {
 
-    Map<String, String> getCountriesWithTheirCurrencyCodes();
+    List<CountryWithDetailedView> getCountriesWithTheirCurrencyCodes();
 
-    List<String> getCountriesByCurrencyCode(String currencyCode);
+    List<CountryWithBriefView> getCountriesByCurrencyCode(String currencyCode);
 
-    Map<String, Double> getHighestAndLowestRatesByBase(String base);
+    StatisticsOfRates getHighestAndLowestRatesByBase(String base);
 
-    Map<String, Double> getLatestRatesByBase(String base);
+    Rates getLatestRatesByBase(String base);
 
 }

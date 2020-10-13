@@ -3,6 +3,16 @@ external:
     countries: https://restcountries.eu/rest/v2
     rates: https://api.exchangeratesapi.io/latest
 
+spring:
+  jackson:
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+
 logging:
   level:
     root: info

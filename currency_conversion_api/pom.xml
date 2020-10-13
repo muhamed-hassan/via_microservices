@@ -45,11 +45,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>io.springfox</groupId>
       <artifactId>springfox-swagger2</artifactId>
       <version>${springfox-swagger2.version}</version>
@@ -185,9 +180,8 @@
         <configuration>
           <excludes>
             <exclude>com/practice/application/ErrorLoggerAspect.class</exclude>
-            <exclude>com/practice/infrastructure/configs/*</exclude>
-            <exclude>com/practice/interfaces/rest/validators/*</exclude>
-            <exclude>com/practice/interfaces/rest/WebErrorHandler.class</exclude>
+            <exclude>com/practice/infrastructure/**</exclude>
+            <exclude>com/practice/interfaces/rest/**</exclude>
             <exclude>com/practice/Main.class</exclude>
           </excludes>
         </configuration>
