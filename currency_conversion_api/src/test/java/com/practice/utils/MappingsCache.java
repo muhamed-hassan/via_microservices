@@ -13,24 +13,18 @@ public final class MappingsCache {
 
     private static Map<String, String> mappingsOfInternalApi;
 
-    private static Map<String, String> mappingsOfExternalApi;
-
     static {
-        mappingsOfInternalApi = loadFiles("responses/internal_api");
-        mappingsOfExternalApi = loadFiles("responses/external_api");
+        try (Stream<Path> files = Files.walk(Paths.get(ClassLoader.getSystemResource("responses/internal_api").toURI()))) {
+            mappingsOfInternalApi = files.filter(Files::isRegularFile)
+                                            .map(MappingsCache::toMappingEntry)
+                                            .collect(Collectors.toMap(MappingEntry::getFileName,
+                                                                        MappingEntry::getFileContent));
+        } catch (Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 
     private MappingsCache() {}
-
-    private static Map<String, String> loadFiles(String directory) {
-        try (Stream<Path> files = Files.walk(Paths.get(ClassLoader.getSystemResource(directory).toURI()))) {
-            return files.filter(Files::isRegularFile)
-                        .map(MappingsCache::toMappingEntry)
-                        .collect(Collectors.toMap(MappingEntry::getFileName, MappingEntry::getFileContent));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private static MappingEntry toMappingEntry(Path filePath) {
         String fileContent;
@@ -47,10 +41,6 @@ public final class MappingsCache {
 
     public static String getMappingFromInternalApi(String fileName) {
         return mappingsOfInternalApi.get(fileName);
-    }
-
-    public static String getMappingFromExternalApi(String fileName) {
-        return mappingsOfExternalApi.get(fileName);
     }
 
 }

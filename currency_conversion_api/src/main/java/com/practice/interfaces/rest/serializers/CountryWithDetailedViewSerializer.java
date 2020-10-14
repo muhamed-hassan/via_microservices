@@ -29,7 +29,8 @@ public class CountryWithDetailedViewSerializer extends StdSerializer<CountryWith
                                 .map(Currency::getCode)
                                 .collect(Collectors.toList())
                                 .toArray(new String[value.getCurrencies().size()]),
-                    0, value.getCurrencies().size());
+                        0,
+                        value.getCurrencies().size());
         jgen.writeEndObject();
     }
 

@@ -1,10 +1,11 @@
-mock-server:
-  port: 5555
-
 external:
   api:
-    countries: http://localhost:${mock-server.port}/rest/v2
-    rates: http://localhost:${mock-server.port}/latest
+    countries: http://localhost:5555/rest/v2
+    rates: http://localhost:5555/latest
+
+feign:
+  hystrix:
+    enabled: true
 
 spring:
   cache:

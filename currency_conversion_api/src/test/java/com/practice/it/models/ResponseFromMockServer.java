@@ -2,24 +2,33 @@ package com.practice.it.models;
 
 import java.util.Map;
 
-public final class ResponseFromMockServer {
+public class ResponseFromMockServer {
 
-    private final String responseBody;
-    private final int httpStatus;
-    private final Map<String, String> headers;
+    private String bodyFile;
+    private int status;
+    private Map<String, String> headers;
 
-    public ResponseFromMockServer(String responseBody, int httpStatus, Map<String, String> headers) {
-        this.responseBody = responseBody;
-        this.httpStatus = httpStatus;
+    public ResponseFromMockServer withBodyFile(String bodyFile) {
+        this.bodyFile = bodyFile;
+        return this;
+    }
+
+    public ResponseFromMockServer withStatus(int status) {
+        this.status = status;
+        return this;
+    }
+
+    public ResponseFromMockServer withHeaders(Map<String, String> headers) {
         this.headers = headers;
+        return this;
     }
 
-    public String getResponseBody() {
-        return responseBody;
+    public String getBodyFile() {
+        return bodyFile;
     }
 
-    public int getHttpStatus() {
-        return httpStatus;
+    public int getStatus() {
+        return status;
     }
 
     public Map<String, String> getHeaders() {

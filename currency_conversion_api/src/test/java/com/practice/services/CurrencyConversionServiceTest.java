@@ -2,10 +2,8 @@ package com.practice.services;
 
 import static com.practice.utils.Constants.ISK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -23,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.practice.application.CurrencyConversionService;
 import com.practice.application.CurrencyConversionServiceImpl;
-import com.practice.application.ServiceNotAvailableException;
 import com.practice.infrastructure.integration.CountryClient;
 import com.practice.infrastructure.integration.RateClient;
 import com.practice.infrastructure.integration.models.CountryWithBriefView;
@@ -31,8 +28,6 @@ import com.practice.infrastructure.integration.models.CountryWithDetailedView;
 import com.practice.infrastructure.integration.models.Currency;
 import com.practice.infrastructure.integration.models.Rates;
 import com.practice.infrastructure.integration.models.StatisticsOfRates;
-
-import feign.FeignException;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyConversionServiceTest {
@@ -103,9 +98,6 @@ class CurrencyConversionServiceTest {
         var actualResult = conversionService.getHighestAndLowestRatesByBase(ISK);
 
         assertEquals(expectedResult, actualResult);
-
-//        assertThrows(ServiceNotAvailableException.class,
-//            () -> conversionService.getHighestAndLowestRatesByBase(ISK));
     }
 
     @Test
