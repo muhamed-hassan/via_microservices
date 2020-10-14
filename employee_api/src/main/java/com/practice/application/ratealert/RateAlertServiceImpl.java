@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
-import com.practice.application.shared.ServiceErrorHandler;
+import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.infrastructure.integration.CurrencyConversionClient;
@@ -33,7 +33,7 @@ public class RateAlertServiceImpl implements RateAlertService {
 
     private final ITemplateEngine templateEngine;
 
-    private final ServiceErrorHandler serviceErrorHandler;
+    private final ServiceExceptionHandler serviceExceptionHandler;
 
     private final String defaultSender;
 
@@ -42,7 +42,7 @@ public class RateAlertServiceImpl implements RateAlertService {
     private final int chunkSize;
 
     public RateAlertServiceImpl(RateAlertRepository rateAlertRepository, CurrencyConversionClient currencyConversionProvider,
-                                    MailSender mailSender, ITemplateEngine templateEngine, ServiceErrorHandler serviceErrorHandler,
+                                    MailSender mailSender, ITemplateEngine templateEngine, ServiceExceptionHandler serviceExceptionHandler,
                                     @Value("${via.default-email.sender}") String defaultSender,
                                     @Value("${via.default-email.subject}") String defaultSubject,
                                     @Value("${chunk-size}") int chunkSize) {
@@ -50,7 +50,7 @@ public class RateAlertServiceImpl implements RateAlertService {
         this.currencyConversionProvider = currencyConversionProvider;
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
-        this.serviceErrorHandler = serviceErrorHandler;
+        this.serviceExceptionHandler = serviceExceptionHandler;
         this.defaultSender = defaultSender;
         this.defaultSubject = defaultSubject;
         this.chunkSize = chunkSize;
@@ -62,7 +62,7 @@ public class RateAlertServiceImpl implements RateAlertService {
         try {
             rateAlertRepository.save(rateAlert);
         } catch (DataIntegrityViolationException e) {
-            throw serviceErrorHandler.wrapDataIntegrityViolationException(e, RateAlert.class);
+            throw serviceExceptionHandler.wrapDataIntegrityViolationException(e, RateAlert.class);
         }
     }
 

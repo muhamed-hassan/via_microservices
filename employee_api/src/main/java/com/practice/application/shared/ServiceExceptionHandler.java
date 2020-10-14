@@ -10,7 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ServiceErrorHandler {
+public class ServiceExceptionHandler {
 
     public <T> IllegalArgumentException wrapDataIntegrityViolationException(DataIntegrityViolationException e, Class<T> entity) {
         String errorMsg = e.getMessage();

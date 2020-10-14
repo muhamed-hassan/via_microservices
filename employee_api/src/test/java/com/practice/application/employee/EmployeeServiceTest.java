@@ -1,9 +1,10 @@
 package com.practice.application.employee;
 
+import static com.practice.utils.ErrorKeys.DB_CONSTRAINT_VIOLATED_EMAIL;
+import static com.practice.utils.ErrorMsgsCache.getMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,7 +31,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 
-import com.practice.application.shared.ServiceErrorHandler;
+import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.employee.Employee;
 import com.practice.domain.employee.EmployeeRepository;
 import com.practice.domain.employee.EmployeeSpecification;
@@ -45,29 +46,29 @@ class EmployeeServiceTest {
 
     private EmployeeRepository employeeRepository;
 
-    private ServiceErrorHandler serviceErrorHandler;
+    private ServiceExceptionHandler serviceExceptionHandler;
 
     @BeforeEach
     void injectRefs() {
         employeeRepository = mock(EmployeeRepository.class);
         employeeSpecification = mock(EmployeeSpecification.class);
-        serviceErrorHandler = mock(ServiceErrorHandler.class);
-        employeeService = new EmployeeServiceImpl(employeeRepository, employeeSpecification, serviceErrorHandler);
+        serviceExceptionHandler = mock(ServiceExceptionHandler.class);
+        employeeService = new EmployeeServiceImpl(employeeRepository, employeeSpecification, serviceExceptionHandler);
     }
 
     @Test
-    public void testGetEmployees_WhenDataFound_ThenReturnThem() {
-        List<SavedEmployeeDto> expectedResult = List.of(new SavedEmployeeDto());
+    void testGetEmployeesWhenDataFoundThenReturnThem() {
+        var expectedResult = List.of(new SavedEmployeeDto());
         when(employeeRepository.findAllSavedEmployees())
             .thenReturn(expectedResult);
 
-        List<SavedEmployeeDto> actualResult = employeeService.getEmployees();
+        var actualResult = employeeService.getEmployees();
 
-        assertTrue(actualResult.size() == expectedResult.size());
+        assertEquals(expectedResult.size(), actualResult.size());
     }
 
     @Test
-    public void testGetEmployees_WhenDataNotFound_ThenThrowNoResultException() {
+    void testGetEmployeesWhenDataNotFoundThenThrowNoResultException() {
         when(employeeRepository.findAllSavedEmployees())
             .thenReturn(List.of());
 
@@ -77,18 +78,18 @@ class EmployeeServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideArgsForTestGetEmployeeByFieldCriteriaWhenDataFound")
-    public void testGetEmployeeByFieldCriteria_WhenDataFound_ThenReturnIt(
+    void testGetEmployeeByFieldCriteriaWhenDataFoundThenReturnIt(
                     Supplier<Specification<Employee>> specsCall,
                     String fieldName,
                     String fieldValue,
                     Optional<Employee> expectedResult) {
-        Specification<Employee> specification = mock(Specification.class);
+        var specification = mock(Specification.class);
         when(specsCall.get())
             .thenReturn(specification);
         when(employeeRepository.findOne(any(Specification.class)))
             .thenReturn(expectedResult);
 
-        Employee actualResult = employeeService.getEmployeeByFieldCriteria(fieldName, fieldValue);
+        var actualResult = employeeService.getEmployeeByFieldCriteria(fieldName, fieldValue);
 
         assertNotNull(actualResult);
     }
@@ -99,7 +100,7 @@ class EmployeeServiceTest {
         Supplier<Specification<Employee>> textualSpecCall =
             () -> employeeSpecification.getEmployeeByTextualSpec(anyString(), anyString());
 
-        Optional<Employee> filledOptional = Optional.of(new Employee());
+        var filledOptional = Optional.of(new Employee());
 
         return Stream.of(
             Arguments.of(idSpecCall, "id", "1", filledOptional),
@@ -110,12 +111,12 @@ class EmployeeServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideArgsForTestGetEmployeeByFieldCriteriaWhenDataNotFound")
-    public void testGetEmployeeByFieldCriteria_WhenDataNotFound_ThenThrowEntityNotFoundException(
+    void testGetEmployeeByFieldCriteriaWhenDataNotFoundThenThrowEntityNotFoundException(
                     Supplier<Specification<Employee>> specsCall,
                     String fieldName,
                     String fieldValue,
                     Optional<Employee> expectedResult) {
-        Specification<Employee> specification = mock(Specification.class);
+        var specification = mock(Specification.class);
         when(specsCall.get())
             .thenReturn(specification);
         when(employeeRepository.findOne(any(Specification.class)))
@@ -131,7 +132,7 @@ class EmployeeServiceTest {
         Supplier<Specification<Employee>> textualSpecCall =
             () -> employeeSpecification.getEmployeeByTextualSpec(anyString(), anyString());
 
-        Optional<Employee> emptyOptional = Optional.empty();
+        var emptyOptional = Optional.empty();
 
         return Stream.of(
             Arguments.of(idSpecCall, "id", "404", emptyOptional),
@@ -141,15 +142,15 @@ class EmployeeServiceTest {
     }
 
     @Test
-    public void testCreateEmployee_WhenEmployeePayloadIsValid_ThenCreateIt() {
-        long expectedIdOfNewlyCreatedEmployee = 1;
-        Employee entity = mock(Employee.class);
+    void testCreateEmployeeWhenEmployeePayloadIsValidThenCreateIt() {
+        var expectedIdOfNewlyCreatedEmployee = 1L;
+        var entity = mock(Employee.class);
         when(employeeRepository.save(any(Employee.class)))
             .thenReturn(entity);
         when(entity.getId())
             .thenReturn(expectedIdOfNewlyCreatedEmployee);
 
-        long actualIdOfNewlyCreatedEmployee = employeeService.createEmployee(entity);
+        var actualIdOfNewlyCreatedEmployee = employeeService.createEmployee(entity);
 
         assertEquals(expectedIdOfNewlyCreatedEmployee, actualIdOfNewlyCreatedEmployee);
     }
@@ -158,11 +159,11 @@ class EmployeeServiceTest {
     @CsvSource({ "DB constraint is violated for this field: username",
                     "DB constraint is violated for this field: email",
                     "DB constraint is violated for this field: phone number" })
-    public void testCreateEmployee_WhenUniqueConstraintViolated_ThenThrowIllegalArgumentException(String errorMsg) {
-        Employee entity = mock(Employee.class);
+    void testCreateEmployeeWhenUniqueConstraintViolatedThenThrowIllegalArgumentException(String errorMsg) {
+        var entity = mock(Employee.class);
         when(employeeRepository.save(any(Employee.class)))
             .thenThrow(DataIntegrityViolationException.class);
-        when(serviceErrorHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
+        when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
             .thenReturn(new IllegalArgumentException(errorMsg));
 
         assertThrows(IllegalArgumentException.class,
@@ -170,9 +171,9 @@ class EmployeeServiceTest {
     }
 
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmployeeExistAndEmailIsNotDuplicated_ThenUpdateIt() {
-        long id = 1;
-        Employee entity = mock(Employee.class);
+    void testUpdateEmployeeEmailByIdWhenEmployeeExistAndEmailIsNotDuplicatedThenUpdateIt() {
+        var id = 1L;
+        var entity = mock(Employee.class);
         when(employeeRepository.getOne(any(Long.class)))
             .thenReturn(entity);
         when(employeeRepository.saveAndFlush(entity))
@@ -185,45 +186,46 @@ class EmployeeServiceTest {
     }
 
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmployeeExistAndEmailIsDuplicated_ThenThrowIllegalArgumentException() {
-        Employee entity = mock(Employee.class);
+    void testUpdateEmployeeEmailByIdWhenEmployeeExistAndEmailIsDuplicatedThenThrowIllegalArgumentException() {
+        var entity = mock(Employee.class);
         when(employeeRepository.getOne(any(Long.class)))
             .thenReturn(entity);
         when(employeeRepository.saveAndFlush(any(Employee.class)))
             .thenThrow(DataIntegrityViolationException.class);
-        when(serviceErrorHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
-            .thenReturn(new IllegalArgumentException("DB constraint is violated for this field: email"));
+        when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
+            .thenReturn(new IllegalArgumentException(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
 
         assertThrows(IllegalArgumentException.class,
-            () -> employeeService.updateEmployeeEmailById(1, "new.email@test.com"));
+            () -> employeeService.updateEmployeeEmailById(1L, "new.email@test.com"));
     }
 
     @Test
-    public void testUpdateEmployeeEmailById_WhenEmployeeNotExist_ThenThrowEntityNotFoundException() {
+    void testUpdateEmployeeEmailByIdWhenEmployeeNotExistThenThrowEntityNotFoundException() {
         when(employeeRepository.getOne(any(Long.class)))
             .thenThrow(javax.persistence.EntityNotFoundException.class);
 
         assertThrows(EntityNotFoundException.class,
-            () -> employeeService.updateEmployeeEmailById(1, "new.email@test.com"));
+            () -> employeeService.updateEmployeeEmailById(1L, "new.email@test.com"));
     }
 
     @Test
-    public void testDeleteEmployeeEmailById_WhenEmployeeExist_ThenDeleteIt() {
+    void testDeleteEmployeeEmailByIdWhenEmployeeExistThenDeleteIt() {
+        var id = 1L;
         doNothing()
             .when(employeeRepository).deleteById(anyLong());
 
-        employeeService.deleteEmployeeById(1);
+        employeeService.deleteEmployeeById(id);
 
-        verify(employeeRepository).deleteById(anyLong());
+        verify(employeeRepository).deleteById(id);
     }
 
     @Test
-    public void testDeleteEmployeeEmailById_WhenEmployeeNotExist_ThenThrowEntityNotFoundException() {
+    void testDeleteEmployeeEmailByIdWhenEmployeeNotExistThenThrowEntityNotFoundException() {
         doThrow(EmptyResultDataAccessException.class)
             .when(employeeRepository).deleteById(anyLong());
 
         assertThrows(EntityNotFoundException.class,
-            () -> employeeService.deleteEmployeeById(1));
+            () -> employeeService.deleteEmployeeById(1L));
     }
 
 }

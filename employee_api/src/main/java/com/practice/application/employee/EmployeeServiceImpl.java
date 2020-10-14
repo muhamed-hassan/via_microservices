@@ -10,7 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.practice.application.shared.ServiceErrorHandler;
+import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.employee.Employee;
 import com.practice.domain.employee.EmployeeRepository;
 import com.practice.domain.employee.EmployeeSpecification;
@@ -28,14 +28,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeSpecification employeeSpecification;
 
-    private final ServiceErrorHandler serviceErrorHandler;
+    private final ServiceExceptionHandler serviceExceptionHandler;
 
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
                                 EmployeeSpecification employeeSpecification,
-                                ServiceErrorHandler serviceErrorHandler) {
+                                ServiceExceptionHandler serviceExceptionHandler) {
         this.employeeRepository = employeeRepository;
         this.employeeSpecification = employeeSpecification;
-        this.serviceErrorHandler = serviceErrorHandler;
+        this.serviceExceptionHandler = serviceExceptionHandler;
     }
 
     @Cacheable(ALL_EMPLOYEES_CACHE)
@@ -72,7 +72,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             return employeeRepository.save(employee).getId();
         } catch (DataIntegrityViolationException e) {
-            throw serviceErrorHandler.wrapDataIntegrityViolationException(e, Employee.class);
+            throw serviceExceptionHandler.wrapDataIntegrityViolationException(e, Employee.class);
         }
     }
 
@@ -85,7 +85,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.setEmail(email);
             employeeRepository.saveAndFlush(employee);
         } catch (DataIntegrityViolationException e) {
-            throw serviceErrorHandler.wrapDataIntegrityViolationException(e, Employee.class);
+            throw serviceExceptionHandler.wrapDataIntegrityViolationException(e, Employee.class);
         } catch (javax.persistence.EntityNotFoundException e) {
             throw new EntityNotFoundException();
         }

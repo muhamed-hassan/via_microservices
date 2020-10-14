@@ -2,6 +2,10 @@ package com.practice.infrastructure.integration.models;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.practice.interfaces.rest.serializers.StatisticsOfRatesSerializer;
+
+@JsonSerialize(using = StatisticsOfRatesSerializer.class)
 public class StatisticsOfRates {
 
     private double lowest;
@@ -48,4 +52,5 @@ public class StatisticsOfRates {
     public int hashCode() {
         return Objects.hash(lowest, highest);
     }
+
 }

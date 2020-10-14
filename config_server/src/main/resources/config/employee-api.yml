@@ -30,6 +30,10 @@ via:
     rate: '*/10 * * ? * *'
 #'0 0 12 * * ?'
 
+feign:
+  hystrix:
+    enabled: true
+
 logging:
   level:
     root: info

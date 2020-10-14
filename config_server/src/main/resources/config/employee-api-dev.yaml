@@ -29,6 +29,10 @@ via:
   scheduled-email:
     rate: '*/10 * * ? * *'
 
+feign:
+  hystrix:
+    enabled: true
+
 logging:
   level:
     root: info

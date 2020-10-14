@@ -1,8 +1,9 @@
 package com.practice.it;
 
-import static com.practice.utils.Mappings.DUPLICATED_EMAIL_JSON;
-import static com.practice.utils.Mappings.INVALID_CURRENCY_CODE_JSON;
-import static com.practice.utils.Mappings.INVALID_EMAIL_JSON;
+import static com.practice.utils.ErrorKeys.DB_CONSTRAINT_VIOLATED_EMAIL;
+import static com.practice.utils.ErrorKeys.INVALID_VALUE_CURRENCY_CODE;
+import static com.practice.utils.ErrorKeys.INVALID_VALUE_EMAIL;
+import static com.practice.utils.ErrorMsgsCache.getMessage;
 import static com.practice.utils.Mappings.NEW_RATE_ALERT_JSON;
 import static com.practice.utils.Mappings.NEW_RATE_ALERT_WITH_INVALID_BASE_JSON;
 import static com.practice.utils.Mappings.NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON;
@@ -13,13 +14,11 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-
-import javax.mail.Message;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,7 +27,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.ResultActions;
 
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
@@ -44,7 +42,7 @@ class RateAlertServiceIT extends BaseControllerIT {
     @Test
     void testSendScheduledMailAlert()
             throws Exception {
-        GreenMail greenMail = new GreenMail(ServerSetupTest.SMTP);
+        var greenMail = new GreenMail(ServerSetupTest.SMTP);
         greenMail.start();
 
         await()
@@ -53,7 +51,7 @@ class RateAlertServiceIT extends BaseControllerIT {
             .untilAsserted(() -> verify(rateAlertService).sendScheduledMailAlert());
 
         greenMail.waitForIncomingEmail(1);
-        Message[] messages = greenMail.getReceivedMessages();
+        var messages = greenMail.getReceivedMessages();
         assertTrue(messages != null && messages.length == 1);
         assertTrue(messages[0].getSubject().equals("Scheduled rate alerts"));
         assertTrue(messages[0].getFrom()[0].toString().equals("no-reply@via.com"));
@@ -65,13 +63,13 @@ class RateAlertServiceIT extends BaseControllerIT {
     @Test
     void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailNotDuplicated_ThenSaveAndReturn202()
             throws Exception {
-        String requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
+        var requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
 
-        ResultActions resultActions = getMockMvc().perform(
+        var resultActions = getMockMvc().perform(
                                                         post("/v1/alerts/rates")
-                                                        .content(requestBody)
-                                                        .contentType(MediaType.APPLICATION_JSON)
-                                                        .accept(MediaType.APPLICATION_JSON));
+                                                            .content(requestBody)
+                                                            .contentType(MediaType.APPLICATION_JSON)
+                                                            .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isAccepted());
     }
@@ -81,38 +79,38 @@ class RateAlertServiceIT extends BaseControllerIT {
     @Test
     void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailDuplicated_ThenReturn400WithErrorMsg()
             throws Exception {
-        String requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
+        var requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
 
-        ResultActions resultActions = getMockMvc().perform(
-                                                    post("/v1/alerts/rates")
-                                                    .content(requestBody)
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .accept(MediaType.APPLICATION_JSON));
+        var resultActions = getMockMvc().perform(
+                                                        post("/v1/alerts/rates")
+                                                            .content(requestBody)
+                                                            .contentType(MediaType.APPLICATION_JSON)
+                                                            .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isBadRequest())
-                        .andExpect(content().json(getMappingFromInternalApi(DUPLICATED_EMAIL_JSON), true));
+                        .andExpect(jsonPath("$.error").value(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
     }
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid")
-    void testRegisterForScheduledMailAlert_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsgFile)
+    void testRegisterForScheduledMailAlert_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsg)
             throws Exception {
-        String requestBody = getMappingFromInternalApi(requestBodyFile);
+        var requestBody = getMappingFromInternalApi(requestBodyFile);
 
-        ResultActions resultActions = getMockMvc().perform(
-                                                    post("/v1/alerts/rates")
-                                                    .content(requestBody)
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .accept(MediaType.APPLICATION_JSON));
+        var resultActions = getMockMvc().perform(
+                                                        post("/v1/alerts/rates")
+                                                            .content(requestBody)
+                                                            .contentType(MediaType.APPLICATION_JSON)
+                                                            .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isBadRequest())
-                        .andExpect(content().json(getMappingFromInternalApi(errorMsgFile), true));
+                        .andExpect(jsonPath("$.error").value(errorMsg));
     }
 
     private static Stream<Arguments> provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid() {
         return Stream.of(
-            Arguments.of(NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON, INVALID_EMAIL_JSON),
-            Arguments.of(NEW_RATE_ALERT_WITH_INVALID_BASE_JSON, INVALID_CURRENCY_CODE_JSON)
+            Arguments.of(NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON, getMessage(INVALID_VALUE_EMAIL)),
+            Arguments.of(NEW_RATE_ALERT_WITH_INVALID_BASE_JSON, getMessage(INVALID_VALUE_CURRENCY_CODE))
         );
     }
 

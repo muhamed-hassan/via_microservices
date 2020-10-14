@@ -1,5 +1,7 @@
 package com.practice.application.ratealert;
 
+import static com.practice.utils.ErrorKeys.DB_CONSTRAINT_VIOLATED_EMAIL;
+import static com.practice.utils.ErrorMsgsCache.getMessage;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,7 +27,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.IContext;
 
-import com.practice.application.shared.ServiceErrorHandler;
+import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.infrastructure.integration.CurrencyConversionClient;
@@ -49,7 +51,7 @@ class RateAlertServiceTest {
 
     private ITemplateEngine templateEngine;
 
-    private ServiceErrorHandler serviceErrorHandler;
+    private ServiceExceptionHandler serviceExceptionHandler;
 
     @BeforeEach
     void injectRefs() {
@@ -57,14 +59,14 @@ class RateAlertServiceTest {
         currencyConversionClient = mock(CurrencyConversionClient.class);
         mailSender = mock(MailSender.class);
         templateEngine = mock(ITemplateEngine.class);
-        serviceErrorHandler = mock(ServiceErrorHandler.class);
+        serviceExceptionHandler = mock(ServiceExceptionHandler.class);
         rateAlertService = new RateAlertServiceImpl(rateAlertRepository, currencyConversionClient, mailSender, templateEngine,
-                                                        serviceErrorHandler, DEFAULT_SENDER, DEFAULT_SUBJECT, CHUNK_SIZE);
+                                                        serviceExceptionHandler, DEFAULT_SENDER, DEFAULT_SUBJECT, CHUNK_SIZE);
     }
 
     @Test
-    public void testRegisterForScheduledMailAlert_WhenEmailIsNew_ThenCreateIt() {
-        RateAlert entity = mock(RateAlert.class);
+    void testRegisterForScheduledMailAlertWhenEmailIsNewThenCreateIt() {
+        var entity = mock(RateAlert.class);
         when(rateAlertRepository.save(any(RateAlert.class)))
             .thenReturn(entity);
 
@@ -74,33 +76,33 @@ class RateAlertServiceTest {
     }
 
     @Test
-    public void testRegisterForScheduledMailAlert_WhenEmailIsDuplicated_ThenThrowIllegalArgumentException() {
+    void testRegisterForScheduledMailAlertWhenEmailIsDuplicatedThenThrowIllegalArgumentException() {
         doThrow(DataIntegrityViolationException.class)
             .when(rateAlertRepository).save(any(RateAlert.class));
-        when(serviceErrorHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
-            .thenReturn(new IllegalArgumentException("DB constraint is violated for this field: email"));
+        when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
+            .thenReturn(new IllegalArgumentException(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
 
         assertThrows(IllegalArgumentException.class,
             () -> rateAlertService.registerForScheduledMailAlert(new RateAlert()));
     }
 
     @Test
-    public void testSendScheduledMailAlert_WhenTriggeringTheJob_ThenSendEmailsWithResult()
+    void testSendScheduledMailAlertWhenTriggeringTheJobThenSendEmailsWithResult()
             throws InterruptedException {
-        String base = "ISK";
-        List<String> bases = List.of(base);
+        var base = "ISK";
+        var bases = List.of(base);
         when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(bases);
         when(currencyConversionClient.getLatestRatesByBase(anyString()))
-            .thenReturn(getLatestRatesOfIsk());
+            .thenReturn(latestRatesOfIsk());
         when(rateAlertRepository.count())
             .thenReturn(1L);
-        RateAlert rateAlert = new RateAlert();
-        rateAlert.setId(1);
+        var rateAlert = new RateAlert();
+        rateAlert.setId(1L);
         rateAlert.setBase(base);
         rateAlert.setEmail("email@example.com");
-        Page<RateAlert> resultPage = mock(Page.class);
-        List<RateAlert> result = List.of(rateAlert);
+        var resultPage = mock(Page.class);
+        var result = List.of(rateAlert);
         when(rateAlertRepository.findAll(any(Pageable.class)))
             .thenReturn(resultPage);
         when(resultPage.toList())
@@ -119,46 +121,46 @@ class RateAlertServiceTest {
         verify(mailSender).send(any(SimpleMailMessage.class));
     }
 
-    private Map<String, Double> getLatestRatesOfIsk() {
-        Map<String, Double> response = new HashMap<>();
-        response.put("CAD", 0.009858125);
-        response.put("HKD", 0.056986875);
-        response.put("ISK", 1.0);
-        response.put("PHP", 0.3610875);
-        response.put("DKK", 0.04653875);
-        response.put("HUF", 2.1545625);
-        response.put("CZK", 0.16388125);
-        response.put("GBP", 0.0056459375);
-        response.put("RON", 0.03022375);
-        response.put("SEK", 0.064390625);
-        response.put("IDR", 107.980625);
-        response.put("INR", 0.552378125);
-        response.put("BRL", 0.039214375);
-        response.put("RUB", 0.542046875);
-        response.put("HRK", 0.046676875);
-        response.put("JPY", 0.779875);
-        response.put("THB", 0.2288);
-        response.put("CHF", 0.006725625);
-        response.put("EUR", 0.00625);
-        response.put("MYR", 0.03103375);
-        response.put("BGN", 0.01222375);
-        response.put("TRY", 0.05124375);
-        response.put("CNY", 0.051348125);
-        response.put("NOK", 0.06723);
-        response.put("NZD", 0.011129375);
-        response.put("ZAR", 0.128049375);
-        response.put("USD", 0.007353125);
-        response.put("MXN", 0.167125625);
-        response.put("SGD", 0.010121875);
-        response.put("AUD", 0.010309375);
-        response.put("ILS", 0.0251825);
-        response.put("KRW", 8.7905625);
-        response.put("PLN", 0.027534375);
-        return response;
+    private Map<String, Double> latestRatesOfIsk() {
+        var rates = new HashMap<String, Double>();
+        rates.put("CAD", 0.0094669118);
+        rates.put("HKD", 0.0559742647);
+        rates.put("ISK", 1.0);
+        rates.put("PHP", 0.3512561275);
+        rates.put("DKK", 0.0456078431);
+        rates.put("HUF", 2.2071078431);
+        rates.put("CZK", 0.167622549);
+        rates.put("GBP", 0.0055509191);
+        rates.put("RON", 0.0298713235);
+        rates.put("SEK", 0.0633762255);
+        rates.put("IDR", 106.6376838235);
+        rates.put("INR", 0.529564951);
+        rates.put("BRL", 0.0400667892);
+        rates.put("RUB", 0.5563976716);
+        rates.put("HRK", 0.0464368873);
+        rates.put("JPY", 0.7621323529);
+        rates.put("THB", 0.2247303922);
+        rates.put("CHF", 0.0065772059);
+        rates.put("EUR", 0.006127451);
+        rates.put("MYR", 0.0299154412);
+        rates.put("BGN", 0.0119840686);
+        rates.put("TRY", 0.0570802696);
+        rates.put("CNY", 0.0486446078);
+        rates.put("NOK", 0.0661292892);
+        rates.put("NZD", 0.0108547794);
+        rates.put("ZAR", 0.1191458333);
+        rates.put("USD", 0.0072224265);
+        rates.put("MXN", 0.1532984069);
+        rates.put("SGD", 0.0098082108);
+        rates.put("AUD", 0.0100508578);
+        rates.put("ILS", 0.0244454657);
+        rates.put("KRW", 8.2781862745);
+        rates.put("PLN", 0.0274822304);
+        return rates;
     }
 
     @Test
-    public void testSendScheduledMailAlert_WhenNoBasesExistInDb_ThenDoNothing()
+    void testSendScheduledMailAlertWhenNoBasesExistInDbThenDoNothing()
             throws InterruptedException {
         when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(List.of());

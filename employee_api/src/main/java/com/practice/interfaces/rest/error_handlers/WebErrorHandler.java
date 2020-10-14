@@ -1,6 +1,5 @@
-package com.practice.interfaces.rest;
+package com.practice.interfaces.rest.error_handlers;
 
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
@@ -20,58 +19,56 @@ import com.practice.application.employee.NoResultException;
 @RestControllerAdvice
 public class WebErrorHandler {
 
-    private final String ERROR_KEY = "error";
-
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleUnsupportedOperationException(UnsupportedOperationException exception) {
+    public ResponseEntity<Error> handleUnsupportedOperationException(UnsupportedOperationException exception) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                                .body(Map.of(ERROR_KEY, exception.getMessage()));
+                                .body(new Error(exception.getMessage()));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException exception) {
+    public ResponseEntity<Error> handleIllegalArgumentException(IllegalArgumentException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of(ERROR_KEY, exception.getMessage()));
+                                .body(new Error(exception.getMessage()));
     }
 
     @ExceptionHandler({ NoResultException.class, EntityNotFoundException.class })
-    public ResponseEntity<Map<String, String>> handleDataNotFoundException(Exception exception) {
+    public ResponseEntity<Error> handleDataNotFoundException(Exception exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body(Map.of(ERROR_KEY, exception.getMessage()));
+                                .body(new Error(exception.getMessage()));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+    public ResponseEntity<Error> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         String message = exception.getBindingResult()
                                     .getAllErrors()
                                     .stream()
                                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                                     .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of(ERROR_KEY, message));
+                                .body(new Error(message));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException exception) {
+    public ResponseEntity<Error> handleConstraintViolationException(ConstraintViolationException exception) {
         String message = exception.getConstraintViolations()
                                     .stream()
                                     .map(ConstraintViolation::getMessage)
                                     .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of(ERROR_KEY, message));
+                                .body(new Error(message));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException exception) {
+    public ResponseEntity<Error> handleMissingServletRequestParameterException(MissingServletRequestParameterException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of(ERROR_KEY, exception.getMessage()));
+                                .body(new Error(exception.getMessage()));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleGeneralException(Exception exception) {
+    public ResponseEntity<Error> handleGeneralException(Exception exception) {
         String message = exception.getMessage() == null ? "Unable to process this request." : exception.getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(Map.of(ERROR_KEY, message));
+                                .body(new Error(message));
     }
 
 }

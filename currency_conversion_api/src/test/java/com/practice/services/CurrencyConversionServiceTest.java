@@ -11,6 +11,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,15 +69,6 @@ class CurrencyConversionServiceTest {
     }
 
     @Test
-    void testGetCountriesWithTheirCurrencyCodesWhenExternalApiNotAvailableThenThrowServiceNotAvailableException() {
-        doThrow(FeignException.ServiceUnavailable.class)
-            .when(countryClient).getCountriesWithTheirCurrencyCodes();
-
-        assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getCountriesWithTheirCurrencyCodes());
-    }
-
-    @Test
     void testGetCountriesByCurrencyCodeWhenExternalApiAvailableAndItsResponseIsValidThenReturnProcessedData() {
         var countryWithBriefView = new CountryWithBriefView();
         countryWithBriefView.setName("Iceland");
@@ -87,15 +79,6 @@ class CurrencyConversionServiceTest {
         var actualResult = conversionService.getCountriesByCurrencyCode(ISK);
 
         assertEquals(expectedResult, actualResult);
-    }
-
-    @Test
-    void testGetCountriesByCurrencyCodeWhenExternalApiNotAvailableThenThrowServiceNotAvailableException() {
-        doThrow(FeignException.ServiceUnavailable.class)
-            .when(countryClient).getCountriesByCurrencyCode(anyString());
-
-        assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getCountriesByCurrencyCode(ISK));
     }
 
     @Test
@@ -112,11 +95,17 @@ class CurrencyConversionServiceTest {
 
     @Test
     void testGetHighestAndLowestRatesByBaseWhenExternalApiNotAvailableThenThrowServiceNotAvailableException() {
-        doThrow(FeignException.ServiceUnavailable.class)
+        var rates = new Rates(Collections.emptyMap());
+        doReturn(rates)
             .when(rateClient).getLatestRatesByBase(anyString());
+        var expectedResult = new StatisticsOfRates();
 
-        assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getHighestAndLowestRatesByBase(ISK));
+        var actualResult = conversionService.getHighestAndLowestRatesByBase(ISK);
+
+        assertEquals(expectedResult, actualResult);
+
+//        assertThrows(ServiceNotAvailableException.class,
+//            () -> conversionService.getHighestAndLowestRatesByBase(ISK));
     }
 
     @Test
@@ -128,15 +117,6 @@ class CurrencyConversionServiceTest {
         var actualResult = conversionService.getLatestRatesByBase(ISK);
 
         assertEquals(expectedResult, actualResult);
-    }
-
-    @Test
-    void testGetLatestRatesByBaseWhenExternalApiNotAvailableThenThrowServiceNotAvailableException() {
-        doThrow(FeignException.ServiceUnavailable.class)
-            .when(rateClient).getLatestRatesByBase(anyString());
-
-        assertThrows(ServiceNotAvailableException.class,
-            () -> conversionService.getLatestRatesByBase(ISK));
     }
 
     private Map<String, Double> latestRatesOfIsk() {
