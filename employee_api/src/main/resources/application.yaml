@@ -1,6 +1,11 @@
 spring:
   liquibase:
     changeLog: "classpath:db/changelog/changelog-master.yaml"
+  zipkin:
+    baseUrl: http://logs-aggregator:9411/
+  sleuth:
+    sampler:
+      percentage: 1.0
 
 server:
   error:
@@ -13,7 +18,7 @@ hystrix:
       execution:
         isolation:
           thread:
-            timeoutInMilliseconds: 5000
+            timeoutInMilliseconds: 10000
 
 eureka:
   instance:

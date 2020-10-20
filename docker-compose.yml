@@ -1,5 +1,12 @@
 version: "3"
-services:     
+services: 
+  logs-aggregator:
+    image: openzipkin/zipkin
+    container_name: logs-aggregator
+    hostname: logs-aggregator
+    ports:
+      - "9411:9411"
+
   employee-api-db:
     image: postgres:12.2-alpine
     container_name: employee-api-db
@@ -17,8 +24,7 @@ services:
     container_name: smtp-server
     hostname: smtp-server     
     ports:
-      - "25:25"  
-      - "9985:9985"  
+      - "25:25"    
     entrypoint: "java -jar MockMock.jar"
 
   service-registry:
@@ -48,6 +54,7 @@ services:
       - "9000:9000"  
     entrypoint: "./wait-for-it.sh -t 0 service-registry:8761 -- java -jar api_gateway-1.0.jar"
     depends_on:
+      - logs-aggregator
       - service-registry
 
   currency-conversion-api:
@@ -58,7 +65,7 @@ services:
     ports:
       - "8085:8085"  
     entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar -Dserver.port=8085 currency_conversion_api-1.0.jar"
-    depends_on:
+    depends_on:      
       - config-server
       - api-gateway
 
@@ -70,7 +77,7 @@ services:
     ports:
       - "8080:8080"  
     entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar -Dserver.port=8080 employee_api-1.0.jar"
-    depends_on:
+    depends_on:      
       - employee-api-db
       - smtp-server      
       - currency-conversion-api

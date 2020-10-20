@@ -1,3 +1,10 @@
+spring:
+  zipkin:
+    baseUrl: http://logs-aggregator:9411/
+  sleuth:
+    sampler:
+      percentage: 1.0
+
 eureka:
   instance:
     prefer-ip-address: true
