@@ -21,6 +21,7 @@ import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.infrastructure.integration.CurrencyConversionClient;
+import com.practice.infrastructure.integration.models.Rate;
 
 @Service
 public class RateAlertServiceImpl implements RateAlertService {
@@ -79,14 +80,15 @@ public class RateAlertServiceImpl implements RateAlertService {
         }
     }
 
-    private Map<String, Map<String, Double>> getLatestRates(List<String> bases) throws InterruptedException {
-        var latestRates = new HashMap<String, Map<String, Double>>();
+    private Map<String, List<Rate>> getLatestRates(List<String> bases) throws InterruptedException {
+        var latestRates = new HashMap<String, List<Rate>>();
         for (var cursor = 0; cursor < bases.size(); cursor++) {
             var base = bases.get(cursor);
             var latestRatesOfCurrentBase = currencyConversionProvider.getLatestRatesByBase(base);
             if (latestRatesOfCurrentBase.isEmpty()) { // means that currency-conversion-api API is down
                 cursor--; // move the cursor back 1 step, to re-try the failed request
-                TimeUnit.HOURS.sleep(1); // sleep for 1 hour and try again
+                //TimeUnit.HOURS.sleep(1); // sleep for 1 hour and try again
+                TimeUnit.SECONDS.sleep(55);
                 continue;
                 // real life scenarios should have more complex and reliable solutions
             }
@@ -101,7 +103,7 @@ public class RateAlertServiceImpl implements RateAlertService {
         return (int) Math.ceil((registeredEmailsCount * 1.0) / chunkSize);
     }
 
-    private void sendAlerts(Map<String, Map<String, Double>> latestRates, int iterations) {
+    private void sendAlerts(Map<String, List<Rate>> latestRates, int iterations) {
         //TimeUnit.SECONDS.sleep(10); //make 10 secs diff between each request (could be changed according to need)
         for (var startingFrom = 0; startingFrom < iterations; startingFrom += chunkSize) {
             //3. select registered emails in chunks of 50 (could be changed according to need)
@@ -113,7 +115,7 @@ public class RateAlertServiceImpl implements RateAlertService {
                 //   Code | Rate
                 //    x   |   x
                 //       ...
-                var latestRatesOfCurrentBase = latestRates.getOrDefault(rateAlert.getBase(), Collections.emptyMap());
+                var latestRatesOfCurrentBase = latestRates.getOrDefault(rateAlert.getBase(), Collections.emptyList());
                 var context = new Context();
                 context.setVariable("base", rateAlert.getBase());
                 context.setVariable("rates", latestRatesOfCurrentBase);

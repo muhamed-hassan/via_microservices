@@ -13,10 +13,6 @@ server:
     whitelabel:
       enabled: false
 
-feign:
-  hystrix:
-    enabled: true
-
 logging:
   level:
     root: info

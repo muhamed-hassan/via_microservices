@@ -1,9 +1,11 @@
 package com.practice.infrastructure.integration;
 
-import java.util.Map;
+import java.util.List;
+
+import com.practice.infrastructure.integration.models.Rate;
 
 public interface CurrencyConversionClient {
 
-    Map<String, Double> getLatestRatesByBase(String currencyCode);
+    List<Rate> getLatestRatesByBase(String currencyCode);
 
 }

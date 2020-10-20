@@ -1,16 +1,18 @@
 package com.practice.infrastructure.integration;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
+
+import com.practice.infrastructure.integration.models.Rate;
 
 @Component
 public class CurrencyConversionFeignClientFallback implements CurrencyConversionFeignClient {
 
     @Override
-    public Map<String, Double> getLatestRatesByBase(String currencyCode) {
-        return Collections.emptyMap();
+    public List<Rate> getLatestRatesByBase(String currencyCode) {
+        return Collections.emptyList();
     }
 
 }

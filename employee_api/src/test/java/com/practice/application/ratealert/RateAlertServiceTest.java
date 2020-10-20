@@ -11,9 +11,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.infrastructure.integration.CurrencyConversionClient;
+import com.practice.infrastructure.integration.models.Rate;
 
 @ExtendWith(MockitoExtension.class)
 class RateAlertServiceTest {
@@ -121,41 +121,41 @@ class RateAlertServiceTest {
         verify(mailSender).send(any(SimpleMailMessage.class));
     }
 
-    private Map<String, Double> latestRatesOfIsk() {
-        var rates = new HashMap<String, Double>();
-        rates.put("CAD", 0.0094669118);
-        rates.put("HKD", 0.0559742647);
-        rates.put("ISK", 1.0);
-        rates.put("PHP", 0.3512561275);
-        rates.put("DKK", 0.0456078431);
-        rates.put("HUF", 2.2071078431);
-        rates.put("CZK", 0.167622549);
-        rates.put("GBP", 0.0055509191);
-        rates.put("RON", 0.0298713235);
-        rates.put("SEK", 0.0633762255);
-        rates.put("IDR", 106.6376838235);
-        rates.put("INR", 0.529564951);
-        rates.put("BRL", 0.0400667892);
-        rates.put("RUB", 0.5563976716);
-        rates.put("HRK", 0.0464368873);
-        rates.put("JPY", 0.7621323529);
-        rates.put("THB", 0.2247303922);
-        rates.put("CHF", 0.0065772059);
-        rates.put("EUR", 0.006127451);
-        rates.put("MYR", 0.0299154412);
-        rates.put("BGN", 0.0119840686);
-        rates.put("TRY", 0.0570802696);
-        rates.put("CNY", 0.0486446078);
-        rates.put("NOK", 0.0661292892);
-        rates.put("NZD", 0.0108547794);
-        rates.put("ZAR", 0.1191458333);
-        rates.put("USD", 0.0072224265);
-        rates.put("MXN", 0.1532984069);
-        rates.put("SGD", 0.0098082108);
-        rates.put("AUD", 0.0100508578);
-        rates.put("ILS", 0.0244454657);
-        rates.put("KRW", 8.2781862745);
-        rates.put("PLN", 0.0274822304);
+    private List<Rate> latestRatesOfIsk() {
+        var rates = new ArrayList<Rate>();
+        rates.add(new Rate("CAD", 0.0094669118));
+        rates.add(new Rate("HKD", 0.0559742647));
+        rates.add(new Rate("ISK", 1.0));
+        rates.add(new Rate("PHP", 0.3512561275));
+        rates.add(new Rate("DKK", 0.0456078431));
+        rates.add(new Rate("HUF", 2.2071078431));
+        rates.add(new Rate("CZK", 0.167622549));
+        rates.add(new Rate("GBP", 0.0055509191));
+        rates.add(new Rate("RON", 0.0298713235));
+        rates.add(new Rate("SEK", 0.0633762255));
+        rates.add(new Rate("IDR", 106.6376838235));
+        rates.add(new Rate("INR", 0.529564951));
+        rates.add(new Rate("BRL", 0.0400667892));
+        rates.add(new Rate("RUB", 0.5563976716));
+        rates.add(new Rate("HRK", 0.0464368873));
+        rates.add(new Rate("JPY", 0.7621323529));
+        rates.add(new Rate("THB", 0.2247303922));
+        rates.add(new Rate("CHF", 0.0065772059));
+        rates.add(new Rate("EUR", 0.006127451));
+        rates.add(new Rate("MYR", 0.0299154412));
+        rates.add(new Rate("BGN", 0.0119840686));
+        rates.add(new Rate("TRY", 0.0570802696));
+        rates.add(new Rate("CNY", 0.0486446078));
+        rates.add(new Rate("NOK", 0.0661292892));
+        rates.add(new Rate("NZD", 0.0108547794));
+        rates.add(new Rate("ZAR", 0.1191458333));
+        rates.add(new Rate("USD", 0.0072224265));
+        rates.add(new Rate("MXN", 0.1532984069));
+        rates.add(new Rate("SGD", 0.0098082108));
+        rates.add(new Rate("AUD", 0.0100508578));
+        rates.add(new Rate("ILS", 0.0244454657));
+        rates.add(new Rate("KRW", 8.2781862745));
+        rates.add(new Rate("PLN", 0.0274822304));
         return rates;
     }
 

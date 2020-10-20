@@ -8,9 +8,9 @@
 	</h2>
 
 	<table style="width: 100%">
-		<tr th:each="entry : ${rates}">
-			<td th:text="${entry.key}"></td>
-			<td th:text="${entry.value}"></td>
+		<tr th:each="element : ${rates}">
+			<td th:text="${element.code}"></td>
+			<td th:text="${element.rate}"></td>
 		</tr>
 	</table>
 </body>
