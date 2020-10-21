@@ -27,7 +27,7 @@ via:
     sender: no-reply@via.com
     subject: 'Scheduled rate alerts'
   scheduled-email:
-    rate: '*/10 * * ? * *'
+    rate: '0 * * * * ?'
 
 logging:
   level:
