@@ -12,6 +12,12 @@ server:
     whitelabel:
       enabled: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
 hystrix:
   command:
     default:

@@ -5,6 +5,12 @@ spring:
     sampler:
       percentage: 1.0
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
 eureka:
   instance:
     prefer-ip-address: true

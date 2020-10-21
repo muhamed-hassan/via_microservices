@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'currency-conversion-api-metrics'
+    metrics_path: '/currency-conversion-api/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:9000']
+  - job_name: 'employee-api-metrics'
+    metrics_path: '/employee-api/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:9000']    
+
