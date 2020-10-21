@@ -57,10 +57,11 @@ services:
     build: 
       context: ./api_gateway
     container_name: api-gateway
-    hostname: api-gateway  
+    hostname: api-gateway 
+    restart: on-failure       
     ports:
       - "9000:9000"  
-    entrypoint: "./wait-for-it.sh -t 0 service-registry:8761 -- java -jar api_gateway-1.0.jar"
+    entrypoint: "java -jar api_gateway-1.0.jar"
     depends_on:
       - monitoring-server
       - logs-aggregator
@@ -71,9 +72,10 @@ services:
       context: ./currency_conversion_api
     container_name: currency-conversion-api
     hostname: currency-conversion-api
+    restart: on-failure
     ports:
       - "8085:8085"  
-    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar -Dserver.port=8085 currency_conversion_api-1.0.jar"
+    entrypoint: "java -jar -Dserver.port=8085 currency_conversion_api-1.0.jar"
     depends_on:      
       - config-server
       - api-gateway
@@ -83,9 +85,10 @@ services:
       context: ./employee_api
     container_name: employee-api
     hostname: employee-api
+    restart: on-failure
     ports:
       - "8080:8080"  
-    entrypoint: "./wait-for-it.sh -t 0 config-server:8888 -- java -jar -Dserver.port=8080 employee_api-1.0.jar"
+    entrypoint: "java -jar -Dserver.port=8080 employee_api-1.0.jar"
     depends_on:      
       - employee-api-db
       - smtp-server      

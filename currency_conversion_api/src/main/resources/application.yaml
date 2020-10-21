@@ -6,6 +6,8 @@ spring:
       percentage: 1.0
 
 management:
+  server:
+    port: 1111
   endpoints:
     web:
       exposure:

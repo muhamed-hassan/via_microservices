@@ -19,6 +19,10 @@ eureka:
     service-url:
       defaultZone: http://service-registry:8761/eureka/
 
+management:
+  server:
+    port: 1111
+
 hystrix:
   command:
     default:
