@@ -1,26 +1,14 @@
 version: "3"
 services: 
-  monitoring-server:
-    build: 
-      context: ./monitoring_server
-    container_name: monitoring-server
-    hostname: monitoring-server     
-    ports:
-      - "9090:9090"    
-
   logs-aggregator:
     image: openzipkin/zipkin
-    container_name: logs-aggregator
     hostname: logs-aggregator
     ports:
       - "9411:9411"
 
   employee-api-db:
     image: postgres:12.2-alpine
-    container_name: employee-api-db
     hostname: employee-api-db
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: "employees"
       POSTGRES_USER: "postgres"
@@ -29,67 +17,64 @@ services:
   smtp-server:
     build: 
       context: ./smtp_server
-    container_name: smtp-server
     hostname: smtp-server     
-    ports:
-      - "25:25"    
     entrypoint: "java -jar MockMock.jar"
 
   service-registry:
     build: 
       context: ./service_registry
-    container_name: service-registry
     hostname: service-registry    
-    ports:
-      - "8761:8761"  
     entrypoint: "java -jar service_registry-1.0.jar"
     
   config-server:
     build: 
       context: ./config_server
-    container_name: config-server
     hostname: config-server  
-    ports:
-      - "8888:8888"  
     entrypoint: "java -jar config_server-1.0.jar"
 
   api-gateway:
     build: 
       context: ./api_gateway
-    container_name: api-gateway
     hostname: api-gateway 
     restart: on-failure       
     ports:
       - "9000:9000"  
     entrypoint: "java -jar api_gateway-1.0.jar"
     depends_on:
-      - monitoring-server
-      - logs-aggregator
       - service-registry
+      - logs-aggregator      
 
   currency-conversion-api:
     build: 
       context: ./currency_conversion_api
-    container_name: currency-conversion-api
     hostname: currency-conversion-api
     restart: on-failure
-    ports:
-      - "8085:8085"  
-    entrypoint: "java -jar -Dserver.port=8085 -Dspring.profiles.active=dev currency_conversion_api-1.0.jar"
+    entrypoint: "java -jar -Dspring.profiles.active=dev currency_conversion_api-1.0.jar"
     depends_on:      
       - config-server
       - api-gateway
-
+    
   employee-api:
     build: 
       context: ./employee_api
-    container_name: employee-api
     hostname: employee-api
     restart: on-failure
-    ports:
-      - "8080:8080"  
-    entrypoint: "java -jar -Dserver.port=8080 -Dspring.profiles.active=dev employee_api-1.0.jar"
+    entrypoint: "java -jar -Dspring.profiles.active=dev employee_api-1.0.jar"
     depends_on:      
       - employee-api-db
       - smtp-server      
       - currency-conversion-api
+    
+  monitoring-server:
+    build: 
+      context: ./monitoring_server
+    hostname: monitoring-server     
+    ports:
+      - "9090:9090" 
+    depends_on:   
+      - employee-api     
+
+
+
+
+      

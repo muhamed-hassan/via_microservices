@@ -5,6 +5,10 @@ spring:
     sampler:
       percentage: 1.0
 
+management:
+  server:
+    port: 1111
+
 server:
   port: 9000
   error:
