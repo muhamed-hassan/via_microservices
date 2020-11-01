@@ -13,8 +13,6 @@ server:
       enabled: false
 
 management:
-  server:
-    port: 1111
   endpoints:
     web:
       exposure:
