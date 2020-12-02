@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-api
+  labels:
+    app: employee-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: employee-api
+  template:
+    metadata:
+      labels:
+        app: employee-api
+    spec:
+      containers:
+        - name: employee-api
+          image: employee-api:1
+          ports:
+            - containerPort: 8080
+          env:
+          - name: EMPLOYEE_API_CONFIGS
+            valueFrom:
+              configMapKeyRef:
+                name: employee-api
+                key: employee-api.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: employee-api
+  labels:
+    app: employee-api
+spec:
+  type: NodePort
+  selector:
+    app: employee-api
+  ports:
+    - nodePort: 30222
+      port: 8080
+      targetPort: 8080
+  
