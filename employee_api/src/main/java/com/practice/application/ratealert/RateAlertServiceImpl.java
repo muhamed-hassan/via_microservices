@@ -1,18 +1,24 @@
 package com.practice.application.ratealert;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.LockModeType;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
@@ -61,12 +67,15 @@ public class RateAlertServiceImpl implements RateAlertService {
     @Override
     public void registerForScheduledMailAlert(RateAlert rateAlert) {
         try {
+            rateAlert.setLastSent(LocalDateTime.now());
             rateAlertRepository.save(rateAlert);
         } catch (DataIntegrityViolationException e) {
             throw serviceExceptionHandler.wrapDataIntegrityViolationException(e, RateAlert.class);
         }
     }
 
+//    @Lock(LockModeType.WRITE)
+    @Transactional//(isolation = Isolation.DEFAULT)
     @Scheduled(cron = "${via.scheduled-email.rate}")
     @Override
     public void sendScheduledMailAlert() throws InterruptedException {

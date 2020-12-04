@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: adding_last_sent_field_to_rate_alert_table
+      author: admin
+      changes:
+        - addColumn:
+            schemaName: public
+            tableName: rate_alert
+              columns:
+                  - column:
+                    name: last_sent
+                    type: TIMESTAMP

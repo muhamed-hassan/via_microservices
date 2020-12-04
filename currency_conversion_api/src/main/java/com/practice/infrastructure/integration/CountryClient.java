@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.practice.infrastructure.integration.models.CountryWithBriefView;
 import com.practice.infrastructure.integration.models.CountryWithDetailedView;
 
-@FeignClient(name = "countryProvider",
+@FeignClient(name = "countryClient",
                 url = "${external.api.countries}",
                 fallback = CountryClientFallback.class)
 public interface CountryClient {

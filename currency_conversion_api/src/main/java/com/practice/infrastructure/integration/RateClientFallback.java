@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import com.practice.infrastructure.integration.models.Rates;
 
 @Component
-public class RateProviderFallback implements RateClient {
+public class RateClientFallback implements RateClient {
 
     private final Rates EMPTY_RATES = new Rates(Collections.emptyMap());
 

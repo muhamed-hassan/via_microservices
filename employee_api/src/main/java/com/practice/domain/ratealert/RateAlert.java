@@ -1,5 +1,6 @@
 package com.practice.domain.ratealert;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -33,6 +34,9 @@ public class RateAlert {
     @Column
     private String email;
 
+    @Column(name = "last_sent")
+    private LocalDateTime lastSent;
+
     public long getId() {
         return id;
     }
@@ -55,6 +59,14 @@ public class RateAlert {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public LocalDateTime getLastSent() {
+        return lastSent;
+    }
+
+    public void setLastSent(LocalDateTime lastSent) {
+        this.lastSent = lastSent;
     }
 
     @Override

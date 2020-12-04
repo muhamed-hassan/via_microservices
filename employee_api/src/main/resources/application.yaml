@@ -1,14 +1,14 @@
 spring:
   liquibase:
     changeLog: "classpath:db/changelog/changelog-master.yaml"
-  zipkin:
-    baseUrl: http://logs-aggregator:9411/
-  sleuth:
-    sampler:
-      percentage: 1.0
+#  zipkin:
+#    baseUrl: http://logs-aggregator:9411/
+#  sleuth:
+#    sampler:
+#      percentage: 1.0
 
 server:
-  port: 0
+  port: 8080
   error:
     whitelabel:
       enabled: false
@@ -21,13 +21,13 @@ management:
       exposure:
         include: '*'
 
-eureka:
-  instance:
-    prefer-ip-address: true
-    hostname: employee-api
-  client:
-    service-url:
-      defaultZone: http://service-registry:8761/eureka/
+#eureka:
+#  instance:
+#    prefer-ip-address: true
+#    hostname: employee-api
+#  client:
+#    service-url:
+#      defaultZone: http://service-registry:8761/eureka/
 
 
 

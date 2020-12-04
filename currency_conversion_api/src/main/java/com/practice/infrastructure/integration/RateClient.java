@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.practice.infrastructure.integration.models.Rates;
 
-@FeignClient(name = "rateProvider",
+@FeignClient(name = "rateClient",
                 url = "${external.api.rates}",
-                fallback = RateProviderFallback.class)
+                fallback = RateClientFallback.class)
 public interface RateClient {
 
     @GetMapping

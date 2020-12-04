@@ -16,7 +16,7 @@ spring:
       config:
         enabled: true
         name: currency-conversion-api
-        namespace: default
-        sources:
-          - name: currency-conversion-api
+#        namespace: default
+#        sources:
+#          - name: currency-conversion-api
 

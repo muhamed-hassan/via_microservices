@@ -2,9 +2,19 @@ spring:
   application:
     name: employee-api
   cloud:
-    config:
-      username: internal-app
-      password: 1234
-      uri: http://config-server:8888
-      fail-fast: true
+#    config:
+#      username: internal-app
+#      password: 1234
+#      uri: http://config-server:8888
+#      fail-fast: true
+    kubernetes:
+      enabled: true
+      reload:
+        #        period: 1000
+        enabled: true
+      config:
+        enabled: true
+        name: employee-api
+#      loadbalancer:
+#        mode: SERVICE
 
