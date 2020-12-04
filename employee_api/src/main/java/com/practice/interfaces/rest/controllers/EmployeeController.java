@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,10 +21,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.practice.application.employee.EmployeeService;
 import com.practice.domain.employee.Employee;
+import com.practice.domain.ratealert.RateAlert;
 import com.practice.interfaces.rest.assemblers.DtoAssembler;
 import com.practice.interfaces.rest.assemblers.EntityAssembler;
 import com.practice.interfaces.rest.dtos.EmailDto;
 import com.practice.interfaces.rest.dtos.NewEmployeeDto;
+import com.practice.interfaces.rest.dtos.RateAlertDto;
 import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
 import com.practice.interfaces.rest.validators.FieldCriteriaValidator;
 import com.practice.interfaces.rest.validators.FieldCriteriaRule;
@@ -47,10 +50,8 @@ public class EmployeeController {
 
     private final FieldCriteriaValidator fieldCriteriaValidator;
 
-    public EmployeeController(EmployeeService employeeService,
-                                EntityAssembler entityAssembler,
-                                DtoAssembler dtoAssembler,
-                                FieldCriteriaValidator fieldCriteriaValidator) {
+    public EmployeeController(EmployeeService employeeService, EntityAssembler entityAssembler,
+                                DtoAssembler dtoAssembler, FieldCriteriaValidator fieldCriteriaValidator) {
         this.employeeService = employeeService;
         this.entityAssembler = entityAssembler;
         this.dtoAssembler = dtoAssembler;
@@ -128,6 +129,18 @@ public class EmployeeController {
     public ResponseEntity<Void> deleteEmployeeById(@PathVariable long id) {
         employeeService.deleteEmployeeById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @ApiOperation("Register for scheduled mail alerts")
+    @ApiResponses(value = {
+        @ApiResponse(code = HttpURLConnection.HTTP_ACCEPTED, message = "The request of scheduled alert is registered and will be processed later"),
+        @ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "Rate alert payload contains invalid value"),
+        @ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Failed to accept the request of scheduled alert")
+    })
+    @PostMapping("alerts")
+    public ResponseEntity<Void> registerForScheduledMailAlert(@RequestBody @Valid RateAlertDto rateAlertDto) {
+        employeeService.registerForScheduledMailAlert(entityAssembler.toEntity(rateAlertDto, RateAlert.class));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
 }

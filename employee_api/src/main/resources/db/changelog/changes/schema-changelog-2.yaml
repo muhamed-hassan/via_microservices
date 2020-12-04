@@ -1,12 +1,28 @@
 databaseChangeLog:
   - changeSet:
-      id: adding_last_sent_field_to_rate_alert_table
+      id: adding_shedlock_table
       author: admin
       changes:
-        - addColumn:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    primaryKey: true
+                  name: name
+                  type: VARCHAR(64)
+              - column:
+                  constraints:
+                    nullable: true
+                  name: lock_until
+                  type: TIMESTAMP
+              - column:
+                  constraints:
+                    nullable: true
+                  name: locked_at
+                  type: TIMESTAMP
+              - column:
+                  name: locked_by
+                  type: VARCHAR(255)
             schemaName: public
-            tableName: rate_alert
-              columns:
-                  - column:
-                    name: last_sent
-                    type: TIMESTAMP
+            tableName: shedlock
+

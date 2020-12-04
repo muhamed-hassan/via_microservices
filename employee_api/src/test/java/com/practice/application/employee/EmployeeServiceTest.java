@@ -35,6 +35,7 @@ import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.employee.Employee;
 import com.practice.domain.employee.EmployeeRepository;
 import com.practice.domain.employee.EmployeeSpecification;
+import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,14 +47,17 @@ class EmployeeServiceTest {
 
     private EmployeeRepository employeeRepository;
 
+    private RateAlertRepository rateAlertRepository;
+
     private ServiceExceptionHandler serviceExceptionHandler;
 
     @BeforeEach
     void injectRefs() {
         employeeRepository = mock(EmployeeRepository.class);
+        rateAlertRepository = mock(RateAlertRepository.class);
         employeeSpecification = mock(EmployeeSpecification.class);
         serviceExceptionHandler = mock(ServiceExceptionHandler.class);
-        employeeService = new EmployeeServiceImpl(employeeRepository, employeeSpecification, serviceExceptionHandler);
+        employeeService = new EmployeeServiceImpl(employeeRepository, employeeSpecification, rateAlertRepository, serviceExceptionHandler);
     }
 
     @Test

@@ -5,7 +5,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.persistence.LockModeType;
 
@@ -29,6 +32,8 @@ import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.infrastructure.integration.CurrencyConversionClient;
 import com.practice.infrastructure.integration.models.Rate;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 @Service
 public class RateAlertServiceImpl implements RateAlertService {
 
@@ -40,8 +45,6 @@ public class RateAlertServiceImpl implements RateAlertService {
 
     private final ITemplateEngine templateEngine;
 
-    private final ServiceExceptionHandler serviceExceptionHandler;
-
     private final String defaultSender;
 
     private final String defaultSubject;
@@ -49,7 +52,7 @@ public class RateAlertServiceImpl implements RateAlertService {
     private final int chunkSize;
 
     public RateAlertServiceImpl(RateAlertRepository rateAlertRepository, CurrencyConversionClient currencyConversionProvider,
-                                    MailSender mailSender, ITemplateEngine templateEngine, ServiceExceptionHandler serviceExceptionHandler,
+                                    MailSender mailSender, ITemplateEngine templateEngine,
                                     @Value("${via.default-email.sender}") String defaultSender,
                                     @Value("${via.default-email.subject}") String defaultSubject,
                                     @Value("${chunk-size}") int chunkSize) {
@@ -57,28 +60,18 @@ public class RateAlertServiceImpl implements RateAlertService {
         this.currencyConversionProvider = currencyConversionProvider;
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
-        this.serviceExceptionHandler = serviceExceptionHandler;
         this.defaultSender = defaultSender;
         this.defaultSubject = defaultSubject;
         this.chunkSize = chunkSize;
     }
 
-    @Transactional
-    @Override
-    public void registerForScheduledMailAlert(RateAlert rateAlert) {
-        try {
-            rateAlert.setLastSent(LocalDateTime.now());
-            rateAlertRepository.save(rateAlert);
-        } catch (DataIntegrityViolationException e) {
-            throw serviceExceptionHandler.wrapDataIntegrityViolationException(e, RateAlert.class);
-        }
-    }
-
 //    @Lock(LockModeType.WRITE)
-    @Transactional//(isolation = Isolation.DEFAULT)
+//    @Transactional//(isolation = Isolation.DEFAULT)
     @Scheduled(cron = "${via.scheduled-email.rate}")
+    @SchedulerLock(name = "TaskScheduler_scheduledTask",
+        lockAtLeastFor = "PT40S", lockAtMostFor = "PT55S")
     @Override
-    public void sendScheduledMailAlert() throws InterruptedException {
+    public void sendScheduledMailAlert() {
         //1. aggregate bases from DB in List<base:String> -> available distinct bases in DB
         var bases = rateAlertRepository.findAllDistinctBases();
         if (!bases.isEmpty()) {
@@ -89,18 +82,19 @@ public class RateAlertServiceImpl implements RateAlertService {
         }
     }
 
-    private Map<String, List<Rate>> getLatestRates(List<String> bases) throws InterruptedException {
+    // TODO use parallelStreams with ForkJoinPool according to available cpu cores later to increase performance =P
+    private Map<String, List<Rate>> getLatestRates(List<String> bases) {
         var latestRates = new HashMap<String, List<Rate>>();
-        for (var cursor = 0; cursor < bases.size(); cursor++) {
-            var base = bases.get(cursor);
+        for (var base : bases) {
             var latestRatesOfCurrentBase = currencyConversionProvider.getLatestRatesByBase(base);
-            if (latestRatesOfCurrentBase.isEmpty()) { // means that currency-conversion-api API is down
+//            if (latestRatesOfCurrentBase.isEmpty()) return Collections.emptyMap(); // currency-conversion-api API is down
+            /*if (latestRatesOfCurrentBase.isEmpty()) { // means that currency-conversion-api API is down
                 cursor--; // move the cursor back 1 step, to re-try the failed request
                 //TimeUnit.HOURS.sleep(1); // sleep for 1 hour and try again
                 TimeUnit.SECONDS.sleep(55);
                 continue;
                 // real life scenarios should have more complex and reliable solutions
-            }
+            }*/
             latestRates.put(base, latestRatesOfCurrentBase);
             //TimeUnit.SECONDS.sleep(10); //make 10 secs diff between each request (could be changed according to need)
         }
@@ -124,7 +118,7 @@ public class RateAlertServiceImpl implements RateAlertService {
                 //   Code | Rate
                 //    x   |   x
                 //       ...
-                var latestRatesOfCurrentBase = latestRates.getOrDefault(rateAlert.getBase(), Collections.emptyList());
+                var latestRatesOfCurrentBase = latestRates.get(rateAlert.getBase());
                 var context = new Context();
                 context.setVariable("base", rateAlert.getBase());
                 context.setVariable("rates", latestRatesOfCurrentBase);

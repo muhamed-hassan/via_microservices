@@ -1,5 +1,6 @@
 package com.practice.application.employee;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -14,6 +15,8 @@ import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.employee.Employee;
 import com.practice.domain.employee.EmployeeRepository;
 import com.practice.domain.employee.EmployeeSpecification;
+import com.practice.domain.ratealert.RateAlert;
+import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
 import com.practice.interfaces.rest.validators.FieldCriteriaValidator;
 
@@ -28,13 +31,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeSpecification employeeSpecification;
 
+    private final RateAlertRepository rateAlertRepository;
+
     private final ServiceExceptionHandler serviceExceptionHandler;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository,
-                                EmployeeSpecification employeeSpecification,
-                                ServiceExceptionHandler serviceExceptionHandler) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeSpecification employeeSpecification,
+                               RateAlertRepository rateAlertRepository, ServiceExceptionHandler serviceExceptionHandler) {
         this.employeeRepository = employeeRepository;
         this.employeeSpecification = employeeSpecification;
+        this.rateAlertRepository = rateAlertRepository;
         this.serviceExceptionHandler = serviceExceptionHandler;
     }
 
@@ -99,6 +104,16 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeRepository.deleteById(id);
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
             throw new EntityNotFoundException(emptyResultDataAccessException);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void registerForScheduledMailAlert(RateAlert rateAlert) {
+        try {
+            rateAlertRepository.save(rateAlert);
+        } catch (DataIntegrityViolationException e) {
+            throw serviceExceptionHandler.wrapDataIntegrityViolationException(e, RateAlert.class);
         }
     }
 

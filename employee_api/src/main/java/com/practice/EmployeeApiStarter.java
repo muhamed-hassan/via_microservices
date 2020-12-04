@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableCaching
-@EnableScheduling
+//@EnableScheduling
 @EnableCircuitBreaker
 @EnableDiscoveryClient
 @EnableFeignClients
