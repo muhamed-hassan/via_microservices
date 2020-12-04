@@ -5,6 +5,7 @@ import static com.practice.utils.ErrorKeys.DB_CONSTRAINT_VIOLATED_PHONE_NUMBER;
 import static com.practice.utils.ErrorKeys.DB_CONSTRAINT_VIOLATED_USERNAME;
 import static com.practice.utils.ErrorKeys.ENTITY_NOT_FOUND;
 import static com.practice.utils.ErrorKeys.INVALID_VALUE_CRITERIA;
+import static com.practice.utils.ErrorKeys.INVALID_VALUE_CURRENCY_CODE;
 import static com.practice.utils.ErrorKeys.INVALID_VALUE_EMAIL;
 import static com.practice.utils.ErrorKeys.INVALID_VALUE_MAX_AGE;
 import static com.practice.utils.ErrorKeys.INVALID_VALUE_MIN_AGE;
@@ -28,6 +29,9 @@ import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_MIN_AGE_JSON
 import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_NAME_JSON;
 import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_PHONE_NUMBER_JSON;
 import static com.practice.utils.Mappings.NEW_EMPLOYEE_WITH_INVALID_USERNAME_JSON;
+import static com.practice.utils.Mappings.NEW_RATE_ALERT_JSON;
+import static com.practice.utils.Mappings.NEW_RATE_ALERT_WITH_INVALID_BASE_JSON;
+import static com.practice.utils.Mappings.NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -297,6 +301,61 @@ class EmployeeControllerIT extends BaseControllerIT {
 
         resultActions.andExpect(status().isNotFound())
                         .andExpect(jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
+    }
+
+    @Sql(scripts = "classpath:db/scripts/reset_rate_alert_table.sql", executionPhase = AFTER_TEST_METHOD)
+    @Test
+    void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailNotDuplicated_ThenSaveAndReturn202()
+            throws Exception {
+        var requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
+
+        var resultActions = getMockMvc().perform(
+                                                        post("/v1/employees/alerts")
+                                                            .content(requestBody)
+                                                            .contentType(MediaType.APPLICATION_JSON)
+                                                            .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isAccepted());
+    }
+
+    @Sql(scripts = "classpath:db/scripts/new_rate_alert.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/scripts/reset_rate_alert_table.sql", executionPhase = AFTER_TEST_METHOD)
+    @Test
+    void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailDuplicated_ThenReturn400WithErrorMsg()
+            throws Exception {
+        var requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
+
+        var resultActions = getMockMvc().perform(
+                                                        post("/v1/employees/alerts")
+                                                            .content(requestBody)
+                                                            .contentType(MediaType.APPLICATION_JSON)
+                                                            .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.error").value(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid")
+    void testRegisterForScheduledMailAlert_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsg)
+            throws Exception {
+        var requestBody = getMappingFromInternalApi(requestBodyFile);
+
+        var resultActions = getMockMvc().perform(
+                                                        post("/v1/employees/alerts")
+                                                            .content(requestBody)
+                                                            .contentType(MediaType.APPLICATION_JSON)
+                                                            .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.error").value(errorMsg));
+    }
+
+    private static Stream<Arguments> provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid() {
+        return Stream.of(
+            Arguments.of(NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON, getMessage(INVALID_VALUE_EMAIL)),
+            Arguments.of(NEW_RATE_ALERT_WITH_INVALID_BASE_JSON, getMessage(INVALID_VALUE_CURRENCY_CODE))
+        );
     }
 
 }

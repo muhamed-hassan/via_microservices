@@ -15,16 +15,16 @@ public class ServiceExceptionHandler {
     public <T> IllegalArgumentException wrapDataIntegrityViolationException(DataIntegrityViolationException e, Class<T> entity) {
         String errorMsg = e.getMessage();
         String violatedField = Stream.of(entity.getDeclaredFields())
-            .map(field -> field.getName().matches("^[a-z]+([A-Z][a-z]+)+$") ?
-                Arrays.stream(field.getDeclaredAnnotationsByType(Column.class))
-                        .map(Column::name)
-                        .filter(StringUtils::isNotBlank)
-                        .findFirst()
-                        .get() :
-                field.getName())
-            .filter(fieldName -> errorMsg.matches(".*(_" + fieldName + "_).*"))
-            .findFirst()
-            .get();
+                                        .map(field -> field.getName().matches("^[a-z]+([A-Z][a-z]+)+$") ?
+                                                        Arrays.stream(field.getDeclaredAnnotationsByType(Column.class))
+                                                                .map(Column::name)
+                                                                .filter(StringUtils::isNotBlank)
+                                                                .findFirst()
+                                                                .get() :
+                                                        field.getName())
+                                        .filter(fieldName -> errorMsg.matches(".*(_" + fieldName + "_).*"))
+                                        .findFirst()
+                                        .get();
         throw new IllegalArgumentException("DB constraint is violated for this field: " + violatedField.replaceAll("_", " "));
     }
 

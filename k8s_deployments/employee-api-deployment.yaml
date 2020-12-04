@@ -34,14 +34,6 @@ spec:
           envFrom:
           - configMapRef:
               name: employee-api
-          # startupProbe:
-          #   httpGet:
-          #     port: 8080
-          #     path: /
-          #   initialDelaySeconds: 5
-          #   timeoutSeconds: 5
-          #   failureThreshold: 20
-
 
 
 

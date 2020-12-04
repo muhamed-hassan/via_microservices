@@ -21,13 +21,6 @@ management:
       exposure:
         include: '*'
 
-#eureka:
-#  instance:
-#    prefer-ip-address: true
-#    hostname: employee-api
-#  client:
-#    service-url:
-#      defaultZone: http://service-registry:8761/eureka/
 
 
 

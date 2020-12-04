@@ -1,9 +1,0 @@
-server:
-  port: 8888
-  error:
-    whitelabel:
-      enabled: false
-
-spring:
-  profiles:
-    active: native

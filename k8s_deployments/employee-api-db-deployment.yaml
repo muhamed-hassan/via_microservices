@@ -3,12 +3,10 @@ kind: Service
 metadata:
   name: employee-api-db
 spec:
-  # type: NodePort
   selector:
     app: employee-api-db
   ports:
-    - #nodePort: 30000
-      port: 5432
+    - port: 5432
 ---      
 apiVersion: apps/v1
 kind: Deployment

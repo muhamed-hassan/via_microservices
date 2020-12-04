@@ -1,12 +1,8 @@
 package com.practice.application.ratealert;
 
-import static com.practice.utils.ErrorKeys.DB_CONSTRAINT_VIOLATED_EMAIL;
-import static com.practice.utils.ErrorMsgsCache.getMessage;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailSender;
@@ -26,14 +21,13 @@ import org.springframework.mail.SimpleMailMessage;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.IContext;
 
-import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.infrastructure.integration.CurrencyConversionClient;
 import com.practice.infrastructure.integration.models.Rate;
 
 @ExtendWith(MockitoExtension.class)
-class RateAlertServiceTest {
+class RateAlertJobTest {
 
     private static final String DEFAULT_SENDER = "no-reply@via.com";
 
@@ -41,7 +35,7 @@ class RateAlertServiceTest {
 
     private static final int CHUNK_SIZE = 50;
 
-    private RateAlertService rateAlertService;
+    private RateAlertJob rateAlertJob;
 
     private RateAlertRepository rateAlertRepository;
 
@@ -57,31 +51,9 @@ class RateAlertServiceTest {
         currencyConversionClient = mock(CurrencyConversionClient.class);
         mailSender = mock(MailSender.class);
         templateEngine = mock(ITemplateEngine.class);
-        rateAlertService = new RateAlertServiceImpl(rateAlertRepository, currencyConversionClient, mailSender, templateEngine,
-                                                        DEFAULT_SENDER, DEFAULT_SUBJECT, CHUNK_SIZE);
+        rateAlertJob = new RateAlertJob(rateAlertRepository, currencyConversionClient, mailSender, templateEngine,
+                                        DEFAULT_SENDER, DEFAULT_SUBJECT, CHUNK_SIZE);
     }
-
-//    @Test
-//    void testRegisterForScheduledMailAlertWhenEmailIsNewThenCreateIt() {
-//        var entity = mock(RateAlert.class);
-//        when(rateAlertRepository.save(any(RateAlert.class)))
-//            .thenReturn(entity);
-//
-//        rateAlertService.registerForScheduledMailAlert(new RateAlert());
-//
-//        verify(rateAlertRepository).save(any(RateAlert.class));
-//    }
-//
-//    @Test
-//    void testRegisterForScheduledMailAlertWhenEmailIsDuplicatedThenThrowIllegalArgumentException() {
-//        doThrow(DataIntegrityViolationException.class)
-//            .when(rateAlertRepository).save(any(RateAlert.class));
-//        when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
-//            .thenReturn(new IllegalArgumentException(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
-//
-//        assertThrows(IllegalArgumentException.class,
-//            () -> rateAlertService.registerForScheduledMailAlert(new RateAlert()));
-//    }
 
     @Test
     void testSendScheduledMailAlertWhenTriggeringTheJobThenSendEmailsWithResult() {
@@ -108,7 +80,7 @@ class RateAlertServiceTest {
         doNothing()
             .when(mailSender).send(any(SimpleMailMessage.class));
 
-        rateAlertService.sendScheduledMailAlert();
+        rateAlertJob.sendScheduledMailAlert();
 
         verify(rateAlertRepository).findAllDistinctBases();
         verify(rateAlertRepository).count();
@@ -160,7 +132,7 @@ class RateAlertServiceTest {
         when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(List.of());
 
-        rateAlertService.sendScheduledMailAlert();
+        rateAlertJob.sendScheduledMailAlert();
 
         verify(rateAlertRepository).findAllDistinctBases();
     }

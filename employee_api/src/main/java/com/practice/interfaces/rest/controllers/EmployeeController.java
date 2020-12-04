@@ -79,10 +79,10 @@ public class EmployeeController {
     })
     @GetMapping("criteria/{fieldCriteria}")
     public SavedEmployeeDto getEmployeeByFieldCriteria(@PathVariable @FieldCriteriaRule String fieldCriteria) {
-        String[] criterionTokens = fieldCriteria.split(":");
+        var criterionTokens = fieldCriteria.split(":");
         if (criterionTokens != null && criterionTokens.length == 2) {
-            String fieldName = criterionTokens[0].toLowerCase();
-            String fieldValue = criterionTokens[1];
+            var fieldName = criterionTokens[0].toLowerCase();
+            var fieldValue = criterionTokens[1];
             if (!fieldCriteriaValidator.isValid(fieldName)) {
                 throw new UnsupportedOperationException("Invalid criteria allowed criteria are id, email and username in the form of fieldName:validValue");
             }

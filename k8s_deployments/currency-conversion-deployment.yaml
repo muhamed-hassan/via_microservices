@@ -34,12 +34,4 @@ spec:
           envFrom:
           - configMapRef:
               name: currency-conversion-api
-          #   c
-          # - name: CURRENCY_CONVERSION_API_CONFIGS
-          #   valueFrom:
-          #     configMapKeyRef:
-          #       name: currency-conversion-api-configmap
-          #       key: currency-conversion-api.yaml
-
-      
   

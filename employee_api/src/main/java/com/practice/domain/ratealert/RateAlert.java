@@ -1,6 +1,5 @@
 package com.practice.domain.ratealert;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import javax.persistence.Column;

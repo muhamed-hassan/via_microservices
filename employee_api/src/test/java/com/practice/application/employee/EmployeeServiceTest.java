@@ -35,6 +35,7 @@ import com.practice.application.shared.ServiceExceptionHandler;
 import com.practice.domain.employee.Employee;
 import com.practice.domain.employee.EmployeeRepository;
 import com.practice.domain.employee.EmployeeSpecification;
+import com.practice.domain.ratealert.RateAlert;
 import com.practice.domain.ratealert.RateAlertRepository;
 import com.practice.interfaces.rest.dtos.SavedEmployeeDto;
 
@@ -230,6 +231,28 @@ class EmployeeServiceTest {
 
         assertThrows(EntityNotFoundException.class,
             () -> employeeService.deleteEmployeeById(1L));
+    }
+
+    @Test
+    void testRegisterForScheduledMailAlertWhenEmailIsNewThenCreateIt() {
+        var entity = mock(RateAlert.class);
+        when(rateAlertRepository.save(any(RateAlert.class)))
+            .thenReturn(entity);
+
+        employeeService.registerForScheduledMailAlert(new RateAlert());
+
+        verify(rateAlertRepository).save(any(RateAlert.class));
+    }
+
+    @Test
+    void testRegisterForScheduledMailAlertWhenEmailIsDuplicatedThenThrowIllegalArgumentException() {
+        doThrow(DataIntegrityViolationException.class)
+            .when(rateAlertRepository).save(any(RateAlert.class));
+        when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
+            .thenReturn(new IllegalArgumentException(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> employeeService.registerForScheduledMailAlert(new RateAlert()));
     }
 
 }
