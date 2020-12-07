@@ -22,17 +22,17 @@ public class WebErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<Error> handleConstraintViolationException(ConstraintViolationException exception) {
-        String message = exception.getConstraintViolations()
-                                    .stream()
-                                    .map(ConstraintViolation::getMessage)
-                                    .collect(Collectors.joining(", "));
+        var message = exception.getConstraintViolations()
+                                        .stream()
+                                        .map(ConstraintViolation::getMessage)
+                                        .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(new Error(message));
     }
 
     @ExceptionHandler
     public ResponseEntity<Error> handleGeneralException(Exception exception) {
-        String message = exception.getMessage() == null ? "Unable to process this request." : exception.getMessage();
+        var message = exception.getMessage() == null ? "Unable to process this request." : exception.getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(new Error(message));
     }

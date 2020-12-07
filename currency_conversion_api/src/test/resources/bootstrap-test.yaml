@@ -2,9 +2,18 @@ spring:
   application:
     name: currency-conversion-api
   cloud:
-    config:
+    kubernetes:
       enabled: false
-    discovery:
-      enabled: false
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+#      ribbon:
+#        enabled: false
+#  cloud:
+#    config:
+#      enabled: false
+#    discovery:
+#      enabled: false
 
 
