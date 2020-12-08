@@ -1,22 +1,11 @@
 spring:
   application:
     name: currency-conversion-api
-#  cloud:
-#    config:
-#      username: internal-app
-#      password: 1234
-#      uri: http://config-server:8888
-#      fail-fast: true
   cloud:
     kubernetes:
       enabled: true
       reload:
-#        period: 1000
         enabled: true
       config:
         enabled: true
         name: currency-conversion-api
-#        namespace: default
-#        sources:
-#          - name: currency-conversion-api
-

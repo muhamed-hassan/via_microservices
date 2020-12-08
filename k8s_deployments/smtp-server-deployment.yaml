@@ -9,7 +9,7 @@ spec:
     app: smtp-server
   ports:
     - port: 25
----    
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,7 +29,12 @@ spec:
           image: smtp-server:1
           ports:
             - containerPort: 25
-
-
-
-
+          readinessProbe:
+            tcpSocket:
+              port: 25
+            initialDelaySeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 25
+            initialDelaySeconds: 15
+            periodSeconds: 30

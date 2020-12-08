@@ -9,7 +9,7 @@ spec:
   ports:
     - nodePort: 30111
       port: 8080
----      
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,6 +32,16 @@ spec:
           ports:
             - containerPort: 8080
           envFrom:
-          - configMapRef:
-              name: currency-conversion-api
-  
+            - configMapRef:
+                name: currency-conversion-api          
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 45
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60  
+            periodSeconds: 30
