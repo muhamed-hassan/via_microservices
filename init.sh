@@ -22,3 +22,8 @@ kubectl create configmap employee-api --from-file=configs/employee-api.yaml -o y
     kubectl apply -f k8s_deployments/employee-api-deployment.yaml && \
     printf '\n>>>> Employee API is starting ...!\n\n' && \
     echo '#######################################################################################'
+
+
+kubectl apply -f k8s_deployments/api-gateway-deployment.yaml && \
+    printf '\n>>>> API Gateway is starting ...\n\n' && \
+    echo '#######################################################################################'    

@@ -3,12 +3,10 @@ kind: Service
 metadata:
   name: currency-conversion-api
 spec:
-  type: NodePort
   selector:
     app: currency-conversion-api
   ports:
-    - nodePort: 30111
-      port: 8080
+    - port: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
