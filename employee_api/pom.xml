@@ -180,6 +180,26 @@
     </dependencies>
   </dependencyManagement>
 
+  <profiles>
+    <profile>
+      <id>build</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <checkstyle.skip>true</checkstyle.skip>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+    <profile>
+      <id>tests</id>
+      <properties>
+        <checkstyle.skip>false</checkstyle.skip>
+        <maven.test.skip>false</maven.test.skip>
+      </properties>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -193,7 +213,7 @@
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <excludes>config/sun_checks.xml</excludes>
           <failOnViolation>true</failOnViolation>
-          <skip>false</skip>
+          <skip>${checkstyle.skip}</skip>
           <consoleOutput>true</consoleOutput>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <includeResources>false</includeResources>

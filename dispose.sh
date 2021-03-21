@@ -7,3 +7,5 @@ kubectl delete services employee-api smtp-server employee-api-db currency-conver
 kubectl delete servicemonitors employee-api-monitor currency-conversion-api-monitor
 
 kubectl delete configmaps employee-api currency-conversion-api
+
+kubectl delete ingress api-gateway
