@@ -6,6 +6,13 @@ external:
 spring:
   application:
     name: currency-conversion-api
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+      config:
+        enabled: false
   jackson:
     deserialization:
       FAIL_ON_UNKNOWN_PROPERTIES: false

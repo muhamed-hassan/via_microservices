@@ -1,6 +1,13 @@
 spring:
   application:
     name: employee-api
+  cloud:
+    kubernetes:
+      enabled: false
+      discovery:
+        enabled: false
+      config:
+        enabled: false
   liquibase:
     changeLog: "classpath:db/changelog/changelog-master.yaml"
   datasource:
