@@ -22,6 +22,8 @@ management:
     tags:
       application: ${spring.application.name}
 
+currency-conversion-api-location:
+
 
 
 

@@ -44,3 +44,5 @@ server:
   error:
     whitelabel:
       enabled: false
+
+currency-conversion-api-location: localhost:8580

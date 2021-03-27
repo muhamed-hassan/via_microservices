@@ -11,6 +11,7 @@ import com.practice.infrastructure.integration.models.Rate;
 
 @Profile("!test")
 @FeignClient(name = "currency-conversion-api",
+                url = "${currency-conversion-api-location}",
                 fallback = CurrencyConversionFeignClientFallback.class)
 public interface CurrencyConversionFeignClient extends CurrencyConversionClient {
 

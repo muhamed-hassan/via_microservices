@@ -23,7 +23,7 @@ public class BaseEmployeeDto extends BaseDto {
     @Pattern(regexp = Patterns.USER_NAME_PATTERN, message = Messages.INVALID_USER_NAME)
     private String username;
 
-    @ApiModelProperty(value = "Phone Number", required = true, example = "(421)-5555")
+    @ApiModelProperty(value = "Phone Number", required = true, example = "4215555 where 421 is country code")
     @NotNull(message = Messages.PHONE_NUMBER_IS_MISSING)
     @Pattern(regexp = Patterns.PHONE_NUMBER_PATTERN, message = Messages.INVALID_PHONE_NUMBER)
     private String phoneNumber;
