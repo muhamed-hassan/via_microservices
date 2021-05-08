@@ -46,7 +46,7 @@ class CurrencyConversionServiceTest {
     }
 
     @Test
-    void testGetCountriesWithTheirCurrencyCodesWhenExternalApiAvailableAndItsResponseIsValidThenReturnProcessedData() {
+    void shouldReturnProcessedCountriesWithTheirCurrencyCodesWhenExternalApiIsAvailableAndItsResponseIsValid() {
         var countryWithDetailedView = new CountryWithDetailedView();
         countryWithDetailedView.setName("Iceland");
         var currencies = new ArrayList<Currency>();
@@ -64,7 +64,7 @@ class CurrencyConversionServiceTest {
     }
 
     @Test
-    void testGetCountriesByCurrencyCodeWhenExternalApiAvailableAndItsResponseIsValidThenReturnProcessedData() {
+    void shouldReturnProcessedCountriesWhenQueriedByCurrencyCodeAndExternalApiIsAvailableAndItsResponseIsValid() {
         var countryWithBriefView = new CountryWithBriefView();
         countryWithBriefView.setName("Iceland");
         var expectedResult = List.of(countryWithBriefView);
@@ -77,7 +77,7 @@ class CurrencyConversionServiceTest {
     }
 
     @Test
-    void testGetHighestAndLowestRatesByBaseWhenExternalApiAvailableAndItsResponseIsValidThenReturnProcessedData() {
+    void shouldReturnHighestAndLowestRatesOfCountriesWhenRequestStatisticsOfCountriesAndExternalApiIsAvailableAndItsResponseIsValid() {
         var rates = new Rates(latestRatesOfIsk());
         doReturn(rates)
             .when(rateClient).getLatestRatesByBase(anyString());
@@ -89,7 +89,7 @@ class CurrencyConversionServiceTest {
     }
 
     @Test
-    void testGetHighestAndLowestRatesByBaseWhenExternalApiNotAvailableThenThrowServiceNotAvailableException() {
+    void shouldReturnFallbackValueWhenRequestStatisticsOfCountriesAndExternalApiIsNotAvailable() {
         var rates = new Rates(Collections.emptyMap());
         doReturn(rates)
             .when(rateClient).getLatestRatesByBase(anyString());
@@ -101,7 +101,7 @@ class CurrencyConversionServiceTest {
     }
 
     @Test
-    void testGetLatestRatesByBaseWhenExternalApiAvailableAndItsResponseIsValidThenReturnProcessedData() {
+    void shouldReturnProcessedLatestRatesOfCountriesWhenQueriedByBaseAndExternalApiIsAvailableAndItsResponseIsValid() {
         var expectedResult = new Rates(latestRatesOfIsk());
         when(rateClient.getLatestRatesByBase(anyString()))
             .thenReturn(expectedResult);
