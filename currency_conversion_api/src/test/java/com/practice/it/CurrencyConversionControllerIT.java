@@ -26,6 +26,7 @@ import static com.practice.utils.Mappings.COUNTRY_OF_ISK_JSON;
 import static com.practice.utils.Mappings.LATEST_RATES_OF_ISK_JSON;
 import static com.practice.utils.Mappings.LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON;
 import static com.practice.utils.MappingsCache.getMappingFromInternalApi;
+import static java.text.MessageFormat.format;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,11 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.text.MessageFormat;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,6 +48,8 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultMatcher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
@@ -63,191 +65,74 @@ class CurrencyConversionControllerIT {
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    void testGetCountriesWithTheirCurrencyCodesWhen3rdPartyApiIsAvailableThenReturn200WithData()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(OK.value())
-                                                                .withHeaders(COUNTRIES_API_RESPONSE_HEADERS)
-                                                                .withBodyFile(COUNTRIES_JSON);
-        prepareStubServer(ALL_COUNTRIES_EXTERNAL, responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(ALL_COUNTRIES_INTERNAL)
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedProcessedResponse = getMappingFromInternalApi(COUNTRIES_JSON);
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedProcessedResponse, true));
-    }
-
-    @Test
-    void testGetCountriesWithTheirCurrencyCodes_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(SERVICE_UNAVAILABLE.value());
-        prepareStubServer(ALL_COUNTRIES_EXTERNAL, responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(ALL_COUNTRIES_INTERNAL)
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedResponse = "[]";
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedResponse, true));
-    }
-
-    @Test
-    void testGetCountriesByCurrencyCodeWhen3rdPartyApiIsAvailableThenReturn200WithData()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(OK.value())
-                                                                .withHeaders(COUNTRIES_API_RESPONSE_HEADERS)
-                                                                .withBodyFile(COUNTRY_OF_ISK_JSON);
-        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, ISK), responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK))
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedProcessedResponse = getMappingFromInternalApi(COUNTRY_OF_ISK_JSON);
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedProcessedResponse, true));
-    }
-
-    @Test
-    void testGetCountriesByCurrencyCode_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(SERVICE_UNAVAILABLE.value());
-        prepareStubServer(MessageFormat.format(COUNTRIES_BY_BASE_EXTERNAL, ISK), responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(MessageFormat.format(COUNTRIES_BY_BASE_INTERNAL, ISK))
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedResponse = "[]";
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedResponse, true));
-    }
-
-    @Test
-    void testGetCountriesByCurrencyCodeWhenInternalApiUriHasInvalidCurrencyCodeThenReturn400WithErrorMsg()
-            throws Exception {
-
-        var resultActions = mockMvc.perform(
-                                                    get(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE)
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(getMessage(INVALID_VALUE_CURRENCY_CODE)));
-    }
-
-    @Test
-    void testGetHighestAndLowestRatesByBaseWhen3rdPartyApiIsAvailableThenReturn200WithData()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(OK.value())
-                                                                .withHeaders(RATES_API_RESPONSE_HEADERS)
-                                                                .withBodyFile(LATEST_RATES_OF_ISK_JSON);
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK))
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedProcessedResponse = getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON);
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedProcessedResponse, true));
-    }
-
-    @Test
-    void testGetHighestAndLowestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(SERVICE_UNAVAILABLE.value());
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK))
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedResponse = "{}";
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedResponse, true));
-    }
-
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode")
-    void testGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCodeThenReturn400WithErrorMsg(String requestUri, String errorMsg)
+    @MethodSource("provideArsWhenThe3rdPartyApiIsAvailable")
+    void shouldReturnStatus200WithDataWhenThe3rdPartyApiIsAvailable(Map<String, String> headers, String bodyFile, String expectedProcessedResponse,
+                                                                    String requestUriToCurrencyConversionApi, String requestUriTo3rdPartyApi)
             throws Exception {
+        var responseFromMockServer = new ResponseFromMockServer()
+                                                                .withStatus(OK.value())
+                                                                .withHeaders(headers)
+                                                                .withBodyFile(bodyFile);
+        prepareStubServer(requestUriTo3rdPartyApi, responseFromMockServer);
 
-        var resultActions = mockMvc.perform(
-                                                    get(requestUri)
-                                                        .accept(MediaType.APPLICATION_JSON));
+        var resultActions = mockMvc.perform(get(requestUriToCurrencyConversionApi).accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(errorMsg));
+        expect(resultActions, status().isOk(), content().json(expectedProcessedResponse, true));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGetHighestAndLowestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode() {
+    private static Stream<Arguments> provideArsWhenThe3rdPartyApiIsAvailable() {
         return Stream.of(
-            Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, getMessage(INVALID_VALUE_CURRENCY_CODE)),
-            Arguments.of(MessageFormat.format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, ISK), getMessage(MISSING_VALUE_CURRENCY_CODE))
+            Arguments.of(COUNTRIES_API_RESPONSE_HEADERS, COUNTRIES_JSON, getMappingFromInternalApi(COUNTRIES_JSON), ALL_COUNTRIES_INTERNAL,
+                         ALL_COUNTRIES_EXTERNAL),
+            Arguments.of(COUNTRIES_API_RESPONSE_HEADERS, COUNTRY_OF_ISK_JSON, getMappingFromInternalApi(COUNTRY_OF_ISK_JSON), format(COUNTRIES_BY_BASE_INTERNAL, ISK),
+                         format(COUNTRIES_BY_BASE_EXTERNAL, ISK)),
+            Arguments.of(RATES_API_RESPONSE_HEADERS, LATEST_RATES_OF_ISK_JSON, getMappingFromInternalApi(LOWEST_AND_HIGHEST_RATES_OF_ISK_JSON),
+                         format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK), format(LATEST_RATES_EXTERNAL, ISK)),
+            Arguments.of(RATES_API_RESPONSE_HEADERS, LATEST_RATES_OF_ISK_JSON, getMappingFromInternalApi(LATEST_RATES_OF_ISK_JSON), format(LATEST_RATES_INTERNAL, ISK),
+                         format(LATEST_RATES_EXTERNAL, ISK))
         );
     }
 
-    @Test
-    void testGetLatestRatesByBaseWhen3rdPartyApiIsAvailableThenReturn200WithData()
+    @ParameterizedTest
+    @MethodSource("provideArsWhenTheRequestUriHasInvalidParams")
+    void shouldReturnStatus400WithErrMsgWhenTheRequestUriHasInvalidParams(String requestUri, String errorMsg)
             throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(OK.value())
-                                                                .withHeaders(RATES_API_RESPONSE_HEADERS)
-                                                                .withBodyFile(LATEST_RATES_OF_ISK_JSON);
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
 
-        var resultActions = mockMvc.perform(
-                                                    get(MessageFormat.format(LATEST_RATES_INTERNAL, ISK))
-                                                        .accept(MediaType.APPLICATION_JSON));
+        var resultActions = mockMvc.perform(get(requestUri).accept(MediaType.APPLICATION_JSON));
 
-        var expectedProcessedResponse = getMappingFromInternalApi(LATEST_RATES_OF_ISK_JSON);
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedProcessedResponse, true));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(errorMsg));
     }
 
-    @Test
-    void testGetLatestRatesByBase_When3rdPartyApiIsDown_ThenReturn503WithErrorMsg()
-            throws Exception {
-        var responseFromMockServer = new ResponseFromMockServer()
-                                                                .withStatus(SERVICE_UNAVAILABLE.value());
-        prepareStubServer(MessageFormat.format(LATEST_RATES_EXTERNAL, ISK), responseFromMockServer);
-
-        var resultActions = mockMvc.perform(
-                                                    get(MessageFormat.format(LATEST_RATES_INTERNAL, ISK))
-                                                        .accept(MediaType.APPLICATION_JSON));
-
-        var expectedResponse = "[]";
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(expectedResponse, true));
+    private static Stream<Arguments> provideArsWhenTheRequestUriHasInvalidParams() {
+        return Stream.of(
+            Arguments.of(COUNTRIES_BY_BASE_INTERNAL_WITH_INVALID_CURRENCY_CODE, getMessage(INVALID_VALUE_CURRENCY_CODE)),
+            Arguments.of(LOWEST_AND_HIGHEST_RATE_INTERNAL_WITH_INVALID_CURRENCY_CODE, getMessage(INVALID_VALUE_CURRENCY_CODE)),
+            Arguments.of(format(LOWEST_AND_HIGHEST_RATE_INTERNAL_MALFORMED, ISK), getMessage(MISSING_VALUE_CURRENCY_CODE)),
+            Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, getMessage(INVALID_VALUE_CURRENCY_CODE)),
+            Arguments.of(format(LATEST_RATES_INTERNAL_MALFORMED, ISK), getMessage(MISSING_VALUE_CURRENCY_CODE))
+        );
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode")
-    void testGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCodeThenReturn400WithErrorMsg(String requestUri, String errorMsg)
+    @MethodSource("provideArsWhenThe3rdPartyApiIsDown")
+    void shouldReturnStatus503WithErrMsgWhenThe3rdPartyApiIsDown(String expectedResponse, String requestUriToCurrencyConversionApi, String requestUriTo3rdPartyApiString)
             throws Exception {
+        var responseFromMockServer = new ResponseFromMockServer()
+                                                                .withStatus(SERVICE_UNAVAILABLE.value());
+        prepareStubServer(requestUriTo3rdPartyApiString, responseFromMockServer);
 
-        var resultActions = mockMvc.perform(
-                                                    get(requestUri)
-                                                        .accept(MediaType.APPLICATION_JSON));
+        var resultActions = mockMvc.perform(get(requestUriToCurrencyConversionApi).accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(errorMsg));
+        expect(resultActions, status().isOk(), content().json(expectedResponse, true));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGetLatestRatesByBaseWhenInternalApiUriHasInvalidCurrencyCode() {
+    private static Stream<Arguments> provideArsWhenThe3rdPartyApiIsDown() {
         return Stream.of(
-            Arguments.of(LATEST_RATES_INTERNAL_WITH_INVALID_CURRENCY_CODE, getMessage(INVALID_VALUE_CURRENCY_CODE)),
-            Arguments.of(MessageFormat.format(LATEST_RATES_INTERNAL_MALFORMED, ISK), getMessage(MISSING_VALUE_CURRENCY_CODE))
+            Arguments.of("[]", ALL_COUNTRIES_INTERNAL, ALL_COUNTRIES_EXTERNAL),
+            Arguments.of("[]", format(COUNTRIES_BY_BASE_INTERNAL, ISK), format(COUNTRIES_BY_BASE_EXTERNAL, ISK)),
+            Arguments.of("{}", format(LOWEST_AND_HIGHEST_RATE_INTERNAL, ISK), format(LATEST_RATES_EXTERNAL, ISK)),
+            Arguments.of("[]", format(LATEST_RATES_INTERNAL, ISK), format(LATEST_RATES_EXTERNAL, ISK))
         );
     }
 
@@ -266,6 +151,13 @@ class CurrencyConversionControllerIT {
             responseDefinitionBuilder.withHeaders(new HttpHeaders(responseHeaders));
         }
         stubFor(mappingBuilder.willReturn(responseDefinitionBuilder));
+    }
+
+    private void expect(ResultActions resultActions, ResultMatcher... resultMatchers)
+            throws Exception {
+        for (var resultMatcher : resultMatchers) {
+            resultActions.andExpect(resultMatcher);
+        }
     }
 
 }
