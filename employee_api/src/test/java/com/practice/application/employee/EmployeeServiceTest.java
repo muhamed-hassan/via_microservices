@@ -62,7 +62,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testGetEmployeesWhenDataFoundThenReturnThem() {
+    void shouldGetEmployeesWhenDataFound() {
         var expectedResult = List.of(new SavedEmployeeDto());
         when(employeeRepository.findAllSavedEmployees())
             .thenReturn(expectedResult);
@@ -73,7 +73,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testGetEmployeesWhenDataNotFoundThenThrowNoResultException() {
+    void shouldThrowNoResultExceptionWhenCallGetEmployeesAndDataNotFound() {
         when(employeeRepository.findAllSavedEmployees())
             .thenReturn(List.of());
 
@@ -82,8 +82,8 @@ class EmployeeServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgsForTestGetEmployeeByFieldCriteriaWhenDataFound")
-    void testGetEmployeeByFieldCriteriaWhenDataFoundThenReturnIt(
+    @MethodSource("provideArgsWhenEmployeeQueriedByFieldCriteriaAndDataFound")
+    void shouldGetEmployeeWhenQueriedByFieldCriteriaAndDataFound(
                     Supplier<Specification<Employee>> specsCall,
                     String fieldName,
                     String fieldValue,
@@ -99,7 +99,7 @@ class EmployeeServiceTest {
         assertNotNull(actualResult);
     }
 
-    private static Stream<Arguments> provideArgsForTestGetEmployeeByFieldCriteriaWhenDataFound() {
+    private static Stream<Arguments> provideArgsWhenEmployeeQueriedByFieldCriteriaAndDataFound() {
         Supplier<Specification<Employee>> idSpecCall =
             () -> employeeSpecification.getEmployeeByIdSpec(anyString(), anyLong());
         Supplier<Specification<Employee>> textualSpecCall =
@@ -115,8 +115,8 @@ class EmployeeServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgsForTestGetEmployeeByFieldCriteriaWhenDataNotFound")
-    void testGetEmployeeByFieldCriteriaWhenDataNotFoundThenThrowEntityNotFoundException(
+    @MethodSource("provideArgsWhenEmployeeQueriedByFieldCriteriaAndDataNotFound")
+    void shouldThrowEntityNotFoundExceptionWhenQueriedByFieldCriteriaAndDataNotFound(
                     Supplier<Specification<Employee>> specsCall,
                     String fieldName,
                     String fieldValue,
@@ -131,7 +131,7 @@ class EmployeeServiceTest {
             () -> employeeService.getEmployeeByFieldCriteria(fieldName, fieldValue));
     }
 
-    private static Stream<Arguments> provideArgsForTestGetEmployeeByFieldCriteriaWhenDataNotFound() {
+    private static Stream<Arguments> provideArgsWhenEmployeeQueriedByFieldCriteriaAndDataNotFound() {
         Supplier<Specification<Employee>> idSpecCall =
             () -> employeeSpecification.getEmployeeByIdSpec(anyString(), anyLong());
         Supplier<Specification<Employee>> textualSpecCall =
@@ -147,7 +147,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testCreateEmployeeWhenEmployeePayloadIsValidThenCreateIt() {
+    void shouldCreateEmployeeWhenPayloadIsValid() {
         var expectedIdOfNewlyCreatedEmployee = 1L;
         var entity = mock(Employee.class);
         when(employeeRepository.save(any(Employee.class)))
@@ -164,7 +164,7 @@ class EmployeeServiceTest {
     @CsvSource({ "DB constraint is violated for this field: username",
                     "DB constraint is violated for this field: email",
                     "DB constraint is violated for this field: phone number" })
-    void testCreateEmployeeWhenUniqueConstraintViolatedThenThrowIllegalArgumentException(String errorMsg) {
+    void shouldThrowIllegalArgumentExceptionWhenUniqueConstraintViolatedOnEmployeeCreation(String errorMsg) {
         var entity = mock(Employee.class);
         when(employeeRepository.save(any(Employee.class)))
             .thenThrow(DataIntegrityViolationException.class);
@@ -176,7 +176,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testUpdateEmployeeEmailByIdWhenEmployeeExistAndEmailIsNotDuplicatedThenUpdateIt() {
+    void shouldUpdateEmployeeEmailWhenEmployeeExistAndEmailIsNotDuplicated() {
         var id = 1L;
         var entity = mock(Employee.class);
         when(employeeRepository.getOne(any(Long.class)))
@@ -191,7 +191,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testUpdateEmployeeEmailByIdWhenEmployeeExistAndEmailIsDuplicatedThenThrowIllegalArgumentException() {
+    void shouldThrowIllegalArgumentExceptionWhenEmployeeExistAndEmailIsDuplicated() {
         var entity = mock(Employee.class);
         when(employeeRepository.getOne(any(Long.class)))
             .thenReturn(entity);
@@ -205,7 +205,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testUpdateEmployeeEmailByIdWhenEmployeeNotExistThenThrowEntityNotFoundException() {
+    void shouldThrowEntityNotFoundExceptionWhenEmployeeNotExistOnEmployeeEditing() {
         when(employeeRepository.getOne(any(Long.class)))
             .thenThrow(javax.persistence.EntityNotFoundException.class);
 
@@ -214,7 +214,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testDeleteEmployeeEmailByIdWhenEmployeeExistThenDeleteIt() {
+    void shouldDeleteEmployeeWhenEmployeeExist() {
         var id = 1L;
         doNothing()
             .when(employeeRepository).deleteById(anyLong());
@@ -225,7 +225,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testDeleteEmployeeEmailByIdWhenEmployeeNotExistThenThrowEntityNotFoundException() {
+    void shouldThrowEntityNotFoundExceptionWhenEmployeeNotExistOnEmployeeRemoval() {
         doThrow(EmptyResultDataAccessException.class)
             .when(employeeRepository).deleteById(anyLong());
 
@@ -234,7 +234,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testRegisterForScheduledMailAlertWhenEmailIsNewThenCreateIt() {
+    void shouldRegisterForScheduledMailAlertWhenEmailIsNew() {
         var entity = mock(RateAlert.class);
         when(rateAlertRepository.save(any(RateAlert.class)))
             .thenReturn(entity);
@@ -245,7 +245,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void testRegisterForScheduledMailAlertWhenEmailIsDuplicatedThenThrowIllegalArgumentException() {
+    void shouldThrowIllegalArgumentExceptionWhenEmailIsDuplicated() {
         doThrow(DataIntegrityViolationException.class)
             .when(rateAlertRepository).save(any(RateAlert.class));
         when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))
