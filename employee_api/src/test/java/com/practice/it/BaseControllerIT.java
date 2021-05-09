@@ -7,6 +7,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest
@@ -38,6 +40,13 @@ class BaseControllerIT {
 
     protected MockMvc getMockMvc() {
         return mockMvc;
+    }
+
+    protected void expect(ResultActions resultActions, ResultMatcher... resultMatchers)
+            throws Exception {
+        for (var resultMatcher : resultMatchers) {
+            resultActions.andExpect(resultMatcher);
+        }
     }
 
 }

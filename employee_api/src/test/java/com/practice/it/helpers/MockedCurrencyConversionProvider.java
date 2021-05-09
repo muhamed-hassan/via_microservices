@@ -20,14 +20,12 @@ public class MockedCurrencyConversionProvider implements CurrencyConversionClien
 
     @Override
     public List<Rate> getLatestRatesByBase(String currencyCode) {
-        String expectedProcessedResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
-        List<Rate> result;
+        var expectedProcessedResponse = getMappingFromExternalApi(LATEST_RATES_OF_ISK_JSON);
         try {
-            result = new ObjectMapper().readValue(expectedProcessedResponse, new TypeReference<List<Rate>>() { });
+            return new ObjectMapper().readValue(expectedProcessedResponse, new TypeReference<>() { });
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return result;
     }
 
 }

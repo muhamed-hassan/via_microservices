@@ -56,7 +56,7 @@ class RateAlertJobTest {
     }
 
     @Test
-    void testSendScheduledMailAlertWhenTriggeringTheJobThenSendEmailsWithResult() {
+    void shouldSendScheduledMailAlertWhenJobIsTriggered() {
         var base = "ISK";
         var bases = List.of(base);
         when(rateAlertRepository.findAllDistinctBases())
@@ -128,7 +128,7 @@ class RateAlertJobTest {
     }
 
     @Test
-    void testSendScheduledMailAlertWhenNoBasesExistInDbThenDoNothing() {
+    void shouldDoNotTriggerTheMailJobWhenNoBasesExistInDb() {
         when(rateAlertRepository.findAllDistinctBases())
             .thenReturn(List.of());
 

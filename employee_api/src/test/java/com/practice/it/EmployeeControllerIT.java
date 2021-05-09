@@ -58,45 +58,42 @@ class EmployeeControllerIT extends BaseControllerIT {
     @Sql(scripts = "classpath:db/scripts/all_employees_data.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testGetEmployees_WhenDataFound_ThenReturn200WithData() 
+    void shouldReturnStatus200WithDataWhenRequestAllEmployeesAndDataFound()
             throws Exception {
         
         var resultActions = getMockMvc().perform(
                                                         get("/v1/employees")
                                                             .accept(MediaType.APPLICATION_JSON));
-        
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(getMappingFromInternalApi(ALL_EMPLOYEES_JSON), true));
+
+        expect(resultActions, status().isOk(), content().json(getMappingFromInternalApi(ALL_EMPLOYEES_JSON), true));
     }
 
     @Test
-    void testGetEmployees_WhenDataNotFound_ThenReturn404WithErrorMsg() 
+    void shouldReturnStatus404WithErrMsgWhenRequestAllEmployeesAndDataNotFound()
             throws Exception {
         
         var resultActions = getMockMvc().perform(
                                                         get("/v1/employees")
                                                             .accept(MediaType.APPLICATION_JSON));
         
-        resultActions.andExpect(status().isNotFound())
-                        .andExpect(jsonPath("$.error").value(getMessage(NO_DATA_FOUND)));
+        expect(resultActions, status().isNotFound(), jsonPath("$.error").value(getMessage(NO_DATA_FOUND)));
     }
 
     @Sql(scripts = "classpath:db/scripts/employee_with_criteria.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataFound")
-    void testGetEmployeeByFieldCriteria_WhenDataFound_ThenReturn200WithData(String pathVariable) 
+    @MethodSource("provideArgsWhenRequestEmployeeByFieldCriteriaAndDataFound")
+    void shouldReturnStatus200WithDataWhenRequestEmployeeByFieldCriteriaAndDataFound(String pathVariable)
             throws Exception {
         
         var resultActions = getMockMvc().perform(
                                                         get(String.format("/v1/employees/criteria/%s", pathVariable))
                                                             .accept(MediaType.APPLICATION_JSON));
-        
-        resultActions.andExpect(status().isOk())
-                        .andExpect(content().json(getMappingFromInternalApi(EMPLOYEE_WITH_CRITERIA_JSON), true));
+
+        expect(resultActions, status().isOk(), content().json(getMappingFromInternalApi(EMPLOYEE_WITH_CRITERIA_JSON), true));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataFound() {
+    private static Stream<Arguments> provideArgsWhenRequestEmployeeByFieldCriteriaAndDataFound() {
         return Stream.of(
             Arguments.of("id:1001"),
             Arguments.of("email:wanya@test.com"),
@@ -105,19 +102,18 @@ class EmployeeControllerIT extends BaseControllerIT {
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataNotFound")
-    void testGetEmployeeByFieldCriteria_WhenDataNotFound_ThenReturn404WithErrorMsg(String pathVariable) 
+    @MethodSource("provideArgsWhenRequestEmployeeByFieldCriteriaAndDataNotFound")
+    void shouldReturnStatus404WithErrMsgWhenRequestEmployeeByFieldCriteriaAndDataNotFound(String pathVariable)
             throws Exception {
         
         var resultActions = getMockMvc().perform(
                                                         get(String.format("/v1/employees/criteria/%s", pathVariable))
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isNotFound())
-                        .andExpect(jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
+        expect(resultActions, status().isNotFound(), jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenDataNotFound() {
+    private static Stream<Arguments> provideArgsWhenRequestEmployeeByFieldCriteriaAndDataNotFound() {
         return Stream.of(
             Arguments.of("id:404"),
             Arguments.of("email:anna@test.com"),
@@ -126,19 +122,18 @@ class EmployeeControllerIT extends BaseControllerIT {
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestGetEmployeeByFieldCriteriaWhenSendingInvalidCriteria")
-    void testGetEmployeeByFieldCriteria_WhenSendingInvalidCriteria_ThenReturn400WithErrorMsg(String pathVariable) 
+    @MethodSource("provideArgsWhenRequestEmployeeByFieldCriteriaAndCriteriaIsInvalid")
+    void shouldReturnStatus400WithErrMsgWhenRequestEmployeeByFieldCriteriaAndCriteriaIsInvalid(String pathVariable)
             throws Exception {
         
         var resultActions = getMockMvc().perform(
                                                         get(String.format("/v1/employees/criteria/%s", pathVariable))
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(getMessage(INVALID_VALUE_CRITERIA)));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(getMessage(INVALID_VALUE_CRITERIA)));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestGetEmployeeByFieldCriteriaWhenSendingInvalidCriteria() {
+    private static Stream<Arguments> provideArgsWhenRequestEmployeeByFieldCriteriaAndCriteriaIsInvalid() {
         return Stream.of(
             Arguments.of("id=2"),
             Arguments.of("id2"),
@@ -154,7 +149,7 @@ class EmployeeControllerIT extends BaseControllerIT {
 
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testCreateEmployee_WhenPayloadIsValid_ThenSaveItAndReturn201WithItsLocation()
+    void shouldCreateEmployeeAndReturnStatus201WithItsLocationWhenPayloadIsValid()
             throws Exception {
 
         var resultActions = getMockMvc().perform(
@@ -163,13 +158,12 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isCreated())
-                        .andExpect(header().exists("Location"));
+        expect(resultActions, status().isCreated(), header().exists("Location"));
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestCreateEmployeeWhenPayloadIsInvalid")
-    void testCreateEmployee_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsg)
+    @MethodSource("provideArgsWhenPayloadIsInvalidOnEmployeeCreation")
+    void shouldFailCreateEmployeeAndReturnStatus400WithErrMsgWhenPayloadIsInvalid(String requestBodyFile, String errorMsg)
             throws Exception {
 
         var resultActions = getMockMvc().perform(
@@ -178,11 +172,10 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(errorMsg));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(errorMsg));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestCreateEmployeeWhenPayloadIsInvalid() {
+    private static Stream<Arguments> provideArgsWhenPayloadIsInvalidOnEmployeeCreation() {
         return Stream.of(
             Arguments.of(NEW_EMPLOYEE_WITH_INVALID_EMAIL_JSON, getMessage(INVALID_VALUE_EMAIL)),
             Arguments.of(NEW_EMPLOYEE_WITH_INVALID_MAX_AGE_JSON, getMessage(INVALID_VALUE_MAX_AGE)),
@@ -196,8 +189,8 @@ class EmployeeControllerIT extends BaseControllerIT {
     @Sql(scripts = "classpath:db/scripts/new_employee.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestCreateEmployeeWhenDbConstraintIsViolated")
-    void testCreateEmployee_WhenDbConstraintIsViolated_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsg)
+    @MethodSource("provideArgsWhenDbConstraintIsViolatedOnEmployeeCreation")
+    void shouldFailCreateEmployeeAndReturnStatus400WithErrMsgWhenDbConstraintIsViolated(String requestBodyFile, String errorMsg)
             throws Exception {
 
         var resultActions = getMockMvc().perform(
@@ -206,11 +199,10 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(errorMsg));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(errorMsg));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestCreateEmployeeWhenDbConstraintIsViolated() {
+    private static Stream<Arguments> provideArgsWhenDbConstraintIsViolatedOnEmployeeCreation() {
         return Stream.of(
             Arguments.of(NEW_EMPLOYEE_WITH_DUPLICATED_EMAIL_JSON, getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)),
             Arguments.of(NEW_EMPLOYEE_WITH_DUPLICATED_PHONE_NUMBER_JSON, getMessage(DB_CONSTRAINT_VIOLATED_PHONE_NUMBER)),
@@ -221,7 +213,7 @@ class EmployeeControllerIT extends BaseControllerIT {
     @Sql(scripts = "classpath:db/scripts/new_employee.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testUpdateEmployeeEmailById_WhenEmailIsValidAndNotDuplicated_ThenUpdateAndReturn204()
+    void shouldUpdateEmployeeEmailAndReturnStatus204WhenEmailIsValidAndNotDuplicated()
             throws Exception {
 
         var resultActions = getMockMvc().perform(
@@ -230,13 +222,13 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isNoContent());
+        expect(resultActions, status().isNoContent());
     }
 
     @Sql(scripts = "classpath:db/scripts/all_employees_data.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testUpdateEmployeeEmailById_WhenEmailIsValidAndDuplicated_ThenReturn400WithErrorMsg()
+    void shouldFailUpdateEmployeeEmailAndReturnStatus400WithErrMsgWhenEmailIsValidAndDuplicated()
             throws Exception {
 
         var resultActions = getMockMvc().perform(
@@ -245,12 +237,11 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
     }
 
     @Test
-    void testUpdateEmployeeEmailById_WhenEmailIsValidAndEmployeeNotFound_ThenReturn404WithErrorMsg()
+    void shouldFailUpdateEmployeeEmailAndReturnStatus404WithErrMsgWhenEmailIsValidAndEmployeeNotFound()
             throws Exception {
         
         var resultActions = getMockMvc().perform(
@@ -259,12 +250,11 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isNotFound())
-                        .andExpect(jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
+        expect(resultActions, status().isNotFound(), jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
     }
 
     @Test
-    void testUpdateEmployeeEmailById_WhenEmailIsInvalid_ThenReturn400WithErrorMsg() 
+    void shouldFailUpdateEmployeeEmailAndReturnStatus400WithErrMsgWhenEmailIsInvalid()
             throws Exception {
         
         var resultActions = getMockMvc().perform(
@@ -273,39 +263,36 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(getMessage(INVALID_VALUE_EMAIL)));
-
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(getMessage(INVALID_VALUE_EMAIL)));
     }
 
     @Sql(scripts = "classpath:db/scripts/new_employee.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_employees_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testDeleteEmployeeById_WhenDataFound_ThenDeleteAndReturn204() 
+    void shouldDeleteEmployeeAndReturnStatus204WhenDataFound()
             throws Exception {
         
         var resultActions = getMockMvc().perform(
                                                         delete(String.format("/v1/employees/%d", 1001))
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isNoContent());
+        expect(resultActions, status().isNoContent());
     }
 
     @Test
-    void testDeleteEmployeeById_WhenDataNotFound_ThenReturn404WithErrorMsg() 
+    void shouldFailDeleteEmployeeAndReturnStatus404WithErrMsgWhenDataNotFound()
             throws Exception {
 
         var resultActions = getMockMvc().perform(
                                                         delete(String.format("/v1/employees/%d", 404))
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isNotFound())
-                        .andExpect(jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
+        expect(resultActions, status().isNotFound(), jsonPath("$.error").value(getMessage(ENTITY_NOT_FOUND)));
     }
 
     @Sql(scripts = "classpath:db/scripts/reset_rate_alert_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailNotDuplicated_ThenSaveAndReturn202()
+    void shouldRegisterForScheduledMailAlertAndReturnStatus202WhenPayloadIsValidAndEmailNotDuplicated()
             throws Exception {
         var requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
 
@@ -315,13 +302,13 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isAccepted());
+        expect(resultActions, status().isAccepted());
     }
 
     @Sql(scripts = "classpath:db/scripts/new_rate_alert.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_rate_alert_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testRegisterForScheduledMailAlert_WhenPayloadIsValidAndEmailDuplicated_ThenReturn400WithErrorMsg()
+    void shouldFailRegisterForScheduledMailAlertAndReturnStatus400WithErrMsgWhenPayloadIsValidAndEmailDuplicated()
             throws Exception {
         var requestBody = getMappingFromInternalApi(NEW_RATE_ALERT_JSON);
 
@@ -331,13 +318,12 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(getMessage(DB_CONSTRAINT_VIOLATED_EMAIL)));
     }
 
     @ParameterizedTest
-    @MethodSource("provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid")
-    void testRegisterForScheduledMailAlert_WhenPayloadIsInvalid_ThenReturn400WithErrorMsg(String requestBodyFile, String errorMsg)
+    @MethodSource("provideArgsWhenPayloadIsInvalidOnMailAlertScheduling")
+    void shouldFailRegisterForScheduledMailAlertAndReturnStatus400WithErrMsgWhenPayloadIsInvalid(String requestBodyFile, String errorMsg)
             throws Exception {
         var requestBody = getMappingFromInternalApi(requestBodyFile);
 
@@ -347,11 +333,10 @@ class EmployeeControllerIT extends BaseControllerIT {
                                                             .contentType(MediaType.APPLICATION_JSON)
                                                             .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.error").value(errorMsg));
+        expect(resultActions, status().isBadRequest(), jsonPath("$.error").value(errorMsg));
     }
 
-    private static Stream<Arguments> provideArgumentsForTestRegisterForScheduledMailAlertWhenPayloadIsInvalid() {
+    private static Stream<Arguments> provideArgsWhenPayloadIsInvalidOnMailAlertScheduling() {
         return Stream.of(
             Arguments.of(NEW_RATE_ALERT_WITH_INVALID_EMAIL_JSON, getMessage(INVALID_VALUE_EMAIL)),
             Arguments.of(NEW_RATE_ALERT_WITH_INVALID_BASE_JSON, getMessage(INVALID_VALUE_CURRENCY_CODE))

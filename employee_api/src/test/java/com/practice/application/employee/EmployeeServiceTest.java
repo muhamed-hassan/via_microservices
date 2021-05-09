@@ -164,7 +164,7 @@ class EmployeeServiceTest {
     @CsvSource({ "DB constraint is violated for this field: username",
                     "DB constraint is violated for this field: email",
                     "DB constraint is violated for this field: phone number" })
-    void shouldThrowIllegalArgumentExceptionWhenUniqueConstraintViolatedOnEmployeeCreation(String errorMsg) {
+    void shouldFailCreateEmployeeAndThrowIllegalArgumentExceptionWhenUniqueConstraintViolated(String errorMsg) {
         var entity = mock(Employee.class);
         when(employeeRepository.save(any(Employee.class)))
             .thenThrow(DataIntegrityViolationException.class);
@@ -191,7 +191,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenEmployeeExistAndEmailIsDuplicated() {
+    void shouldFailUpdateEmployeeEmailAndThrowIllegalArgumentExceptionWhenEmployeeExistAndEmailIsDuplicated() {
         var entity = mock(Employee.class);
         when(employeeRepository.getOne(any(Long.class)))
             .thenReturn(entity);
@@ -205,7 +205,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void shouldThrowEntityNotFoundExceptionWhenEmployeeNotExistOnEmployeeEditing() {
+    void shouldFailUpdateEmployeeEmailAndThrowEntityNotFoundExceptionWhenEmployeeNotExist() {
         when(employeeRepository.getOne(any(Long.class)))
             .thenThrow(javax.persistence.EntityNotFoundException.class);
 
@@ -225,7 +225,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void shouldThrowEntityNotFoundExceptionWhenEmployeeNotExistOnEmployeeRemoval() {
+    void shouldFailDeleteEmployeeAndThrowEntityNotFoundExceptionWhenEmployeeNotExist() {
         doThrow(EmptyResultDataAccessException.class)
             .when(employeeRepository).deleteById(anyLong());
 
@@ -245,7 +245,7 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenEmailIsDuplicated() {
+    void shouldFailAlertSchedulingAndThrowIllegalArgumentExceptionWhenEmailIsDuplicated() {
         doThrow(DataIntegrityViolationException.class)
             .when(rateAlertRepository).save(any(RateAlert.class));
         when(serviceExceptionHandler.wrapDataIntegrityViolationException(any(DataIntegrityViolationException.class), any(Class.class)))

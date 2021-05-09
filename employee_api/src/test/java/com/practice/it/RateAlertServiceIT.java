@@ -24,7 +24,7 @@ class RateAlertServiceIT extends BaseControllerIT {
     @Sql(scripts = "classpath:db/scripts/new_rate_alert.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/scripts/reset_rate_alert_table.sql", executionPhase = AFTER_TEST_METHOD)
     @Test
-    void testSendScheduledMailAlert()
+    void shouldSendScheduledMailAlertWhenTheJobIsTriggered()
             throws Exception {
         var greenMail = new GreenMail(ServerSetupTest.SMTP);
         greenMail.start();
